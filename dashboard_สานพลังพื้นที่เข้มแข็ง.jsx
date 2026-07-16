@@ -57,21 +57,22 @@ const PARTNER_AGENCIES = [
   { id: "ha", name: "สรพ.", fullName: "สถาบันรับรองคุณภาพสถานพยาบาล", role: "คุณภาพระบบบริการสุขภาพ", color: "#14B8A6" },
 ];
 
-// ข้อมูล TWBI คงที่รายจังหวัด (13 จังหวัด)
+// ข้อมูล TWBI คงที่รายจังหวัด (13 จังหวัด) — 5 มิติตามเอกสาร TWBI V7 (สช.)
+// มิติ: (1) สุขภาพ (2) สังคมและเศรษฐกิจ (3) สิ่งแวดล้อมและโครงสร้างพื้นฐาน (4) การศึกษาและทรัพยากรมนุษย์ (5) การมีส่วนร่วมของประชาชน
 const twbiData = [
-  { province: "เชียงราย", phase: 1, twbiScore: 72.4, health: 75, education: 68, economy: 62, environment: 78, safety: 70, governance: 81 },
-  { province: "นครสวรรค์", phase: 1, twbiScore: 68.2, health: 70, education: 65, economy: 58, environment: 72, safety: 68, governance: 76 },
-  { province: "ตราด", phase: 1, twbiScore: 65.5, health: 68, education: 62, economy: 55, environment: 80, safety: 65, governance: 63 },
-  { province: "ขอนแก่น", phase: 1, twbiScore: 74.8, health: 78, education: 75, economy: 70, environment: 68, safety: 72, governance: 85 },
-  { province: "พัทลุง", phase: 1, twbiScore: 69.1, health: 72, education: 64, economy: 56, environment: 76, safety: 72, governance: 75 },
-  { province: "พิษณุโลก", phase: 2, twbiScore: 64.5, health: 67, education: 62, economy: 60, environment: 70, safety: 64, governance: 64 },
-  { province: "ปทุมธานี", phase: 2, twbiScore: 66.8, health: 65, education: 72, economy: 75, environment: 52, safety: 55, governance: 82 },
-  { province: "สุพรรณบุรี", phase: 2, twbiScore: 62.3, health: 63, education: 58, economy: 55, environment: 72, safety: 62, governance: 64 },
-  { province: "บึงกาฬ", phase: 2, twbiScore: 55.8, health: 56, education: 50, economy: 42, environment: 68, safety: 58, governance: 61 },
-  { province: "ชัยภูมิ", phase: 2, twbiScore: 58.4, health: 60, education: 54, economy: 48, environment: 66, safety: 60, governance: 62 },
-  { province: "อุบลราชธานี", phase: 2, twbiScore: 58.3, health: 60, education: 55, economy: 48, environment: 62, safety: 58, governance: 67 },
-  { province: "กระบี่", phase: 2, twbiScore: 63.7, health: 66, education: 60, economy: 68, environment: 72, safety: 55, governance: 61 },
-  { province: "กรุงเทพมหานคร", phase: 2, twbiScore: 70.2, health: 72, education: 78, economy: 82, environment: 48, safety: 50, governance: 91 },
+  { province: "เชียงราย", phase: 1, twbiScore: 73.6, health: 75, socialEcon: 66, envInfra: 78, eduHuman: 68, civic: 81 },
+  { province: "นครสวรรค์", phase: 1, twbiScore: 69.2, health: 70, socialEcon: 63, envInfra: 72, eduHuman: 65, civic: 76 },
+  { province: "ตราด", phase: 1, twbiScore: 66.6, health: 68, socialEcon: 60, envInfra: 80, eduHuman: 62, civic: 63 },
+  { province: "ขอนแก่น", phase: 1, twbiScore: 75.4, health: 78, socialEcon: 71, envInfra: 68, eduHuman: 75, civic: 85 },
+  { province: "พัทลุง", phase: 1, twbiScore: 70.2, health: 72, socialEcon: 64, envInfra: 76, eduHuman: 64, civic: 75 },
+  { province: "พิษณุโลก", phase: 2, twbiScore: 65.0, health: 67, socialEcon: 62, envInfra: 70, eduHuman: 62, civic: 64 },
+  { province: "ปทุมธานี", phase: 2, twbiScore: 67.2, health: 65, socialEcon: 65, envInfra: 52, eduHuman: 72, civic: 82 },
+  { province: "สุพรรณบุรี", phase: 2, twbiScore: 63.2, health: 63, socialEcon: 59, envInfra: 72, eduHuman: 58, civic: 64 },
+  { province: "บึงกาฬ", phase: 2, twbiScore: 57.0, health: 56, socialEcon: 50, envInfra: 68, eduHuman: 50, civic: 61 },
+  { province: "ชัยภูมิ", phase: 2, twbiScore: 59.2, health: 60, socialEcon: 54, envInfra: 66, eduHuman: 54, civic: 62 },
+  { province: "อุบลราชธานี", phase: 2, twbiScore: 59.4, health: 60, socialEcon: 53, envInfra: 62, eduHuman: 55, civic: 67 },
+  { province: "กระบี่", phase: 2, twbiScore: 64.2, health: 66, socialEcon: 62, envInfra: 72, eduHuman: 60, civic: 61 },
+  { province: "กรุงเทพมหานคร", phase: 2, twbiScore: 71.0, health: 72, socialEcon: 66, envInfra: 48, eduHuman: 78, civic: 91 },
 ];
 
 // ข้อมูลการมีส่วนร่วม (Tiered Participation)
@@ -658,15 +659,14 @@ export default function Dashboard() {
                   </div>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                     <div>
-                      <h4 className="text-xs font-semibold text-gray-600 mb-2">มิติสุขภาวะ (TWBI 6 มิติ)</h4>
+                      <h4 className="text-xs font-semibold text-gray-600 mb-2">มิติสุขภาวะ (TWBI 5 มิติ)</h4>
                       <ResponsiveContainer width="100%" height={250}>
                         <RadarChart data={[
                           {dim:"สุขภาพ",value:selectedData?.twbi?.health},
-                          {dim:"การศึกษา",value:selectedData?.twbi?.education},
-                          {dim:"เศรษฐกิจ",value:selectedData?.twbi?.economy},
-                          {dim:"สิ่งแวดล้อม",value:selectedData?.twbi?.environment},
-                          {dim:"ความปลอดภัย",value:selectedData?.twbi?.safety},
-                          {dim:"ธรรมาภิบาล",value:selectedData?.twbi?.governance},
+                          {dim:"สังคม/เศรษฐกิจ",value:selectedData?.twbi?.socialEcon},
+                          {dim:"สิ่งแวดล้อม/โครงสร้าง",value:selectedData?.twbi?.envInfra},
+                          {dim:"การศึกษา/ทรัพยากร",value:selectedData?.twbi?.eduHuman},
+                          {dim:"การมีส่วนร่วม",value:selectedData?.twbi?.civic},
                         ]}>
                           <PolarGrid stroke="#e5e7eb"/><PolarAngleAxis dataKey="dim" tick={{fontSize:10}}/>
                           <PolarRadiusAxis domain={[0,100]} tick={{fontSize:8}}/>
@@ -897,7 +897,7 @@ export default function Dashboard() {
               <h3 className="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2"><FileText size={15} className="text-blue-500"/>สถาปัตยกรรมข้อมูล Dashboard</h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {[{title:"ระดับ 1: Input",items:["HDC 43 แฟ้ม (กสธ.)","กองทุน กปท./LTC/จังหวัด (สปสช.)","สำมะโนประชากร (NSO)","TPMAP ความยากจนหลายมิติ","องค์กรชุมชน (พอช.)","GPP จังหวัด (สภาพัฒน์)"],bg:"#EFF6FF",bg2:"#E0E7FF",tc:"#1D4ED8"},
-                  {title:"ระดับ 2: Process",items:["SHARE Platform รวมศูนย์","คำนวณ TWBI 6 มิติ","Mapping ทรัพยากร Co-invest","วิเคราะห์ Tiered Participation","ตัวชี้วัดผลลัพธ์ O1–O4","Milestone Gating Assessment"],bg:"#ECFDF5",bg2:"#D1FAE5",tc:"#047857"},
+                  {title:"ระดับ 2: Process",items:["SHARE Platform รวมศูนย์","คำนวณ TWBI 5 มิติ","Mapping ทรัพยากร Co-invest","วิเคราะห์ Tiered Participation","ตัวชี้วัดผลลัพธ์ O1–O4","Milestone Gating Assessment"],bg:"#ECFDF5",bg2:"#D1FAE5",tc:"#047857"},
                   {title:"ระดับ 3: Output",items:["Dashboard ผู้บริหาร/รายจังหวัด","Radar Chart สุขภาวะ","แจ้งเตือนความเสี่ยง (Alert)","รายงานอัตโนมัติ (Auto Report)","ข้อเสนอเชิงนโยบาย","API สำหรับจังหวัดใช้ข้อมูลร่วม"],bg:"#F5F3FF",bg2:"#EDE9FE",tc:"#6D28D9"},
                 ].map((sec,i) => (
                   <div key={i} className="p-3 rounded-xl border border-gray-100" style={{background:`linear-gradient(135deg, ${sec.bg}, ${sec.bg2})`}}>
