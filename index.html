@@ -4,58 +4,71 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard โครงการสานพลังเสริมสร้างจังหวัดเข้มแข็ง (ภาคีอาสา)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/recharts@2.12.7/umd/Recharts.js"></script>
-  <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #f8fafc; }
+    #loading { display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 1.2em; color: #666; }
   </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
+  <div id="root"><div id="loading">กำลังโหลด Dashboard...</div></div>
+
+  <!-- Load Recharts via ES module, then boot Babel -->
+  <script type="module">
+    // Import Recharts via esm.sh (bundles its own React but we override below)
+    import * as RechartsModule from 'https://esm.sh/recharts@2.12.7?external=react,react-dom&alias=react:https://esm.sh/react@18.2.0,react-dom:https://esm.sh/react-dom@18.2.0';
+    window.Recharts = RechartsModule;
+
+    // Load Babel standalone, then process our app script
+    const babelScript = document.createElement('script');
+    babelScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.9/babel.min.js';
+    babelScript.onload = () => {
+      Babel.transformScriptTags();
+    };
+    document.head.appendChild(babelScript);
+  </script>
+
+  <script type="text/babel" data-plugins="transform-modules-umd">
     const { useState, useMemo } = React;
     const {
       BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend,
       ResponsiveContainer, RadarChart, PolarGrid, PolarAngleAxis,
       PolarRadiusAxis, Radar, PieChart, Pie, Cell, LineChart, Line
-    } = Recharts;
+    } = window.Recharts;
 
-    // Lucide icons fallback — simple SVG wrappers
-    const IconFallback = ({ size = 16, className = "" }) => (
-      <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10"/>
+    // Simple icon components (SVG)
+    const makeIcon = (paths) => ({ size = 16, className = "" }) => (
+      <svg width={size} height={size} className={className} viewBox="0 0 24 24" fill="none" 
+           stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        {paths}
       </svg>
     );
-
-    // Try to use lucide-react if available, otherwise use fallback
-    const lucide = typeof window.LucideReact !== 'undefined' ? window.LucideReact : {};
-    const Activity = lucide.Activity || IconFallback;
-    const Users = lucide.Users || IconFallback;
-    const MapPin = lucide.MapPin || IconFallback;
-    const TrendingUp = lucide.TrendingUp || IconFallback;
-    const Database = lucide.Database || IconFallback;
-    const Building2 = lucide.Building2 || IconFallback;
-    const Heart = lucide.Heart || IconFallback;
-    const Shield = lucide.Shield || IconFallback;
-    const ChevronRight = lucide.ChevronRight || IconFallback;
-    const ExternalLink = lucide.ExternalLink || IconFallback;
-    const AlertTriangle = lucide.AlertTriangle || IconFallback;
-    const CheckCircle = lucide.CheckCircle || IconFallback;
-    const Clock = lucide.Clock || IconFallback;
-    const Star = lucide.Star || IconFallback;
-    const Layers = lucide.Layers || IconFallback;
-    const BarChart3 = lucide.BarChart3 || IconFallback;
-    const Target = lucide.Target || IconFallback;
-    const Globe = lucide.Globe || IconFallback;
-    const FileText = lucide.FileText || IconFallback;
-    const Bell = lucide.Bell || IconFallback;
-    const ArrowUpRight = lucide.ArrowUpRight || IconFallback;
-    const ArrowDownRight = lucide.ArrowDownRight || IconFallback;
-    const Minus = lucide.Minus || IconFallback;
-    const Eye = lucide.Eye || IconFallback;
+    const Activity = makeIcon(<><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></>);
+    const Users = makeIcon(<><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></>);
+    const MapPin = makeIcon(<><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></>);
+    const TrendingUp = makeIcon(<><polyline points="22 7 13.5 15.5 8.5 10.5 2 17"/><polyline points="16 7 22 7 22 13"/></>);
+    const Database = makeIcon(<><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5V19A9 3 0 0 0 21 19V5"/><path d="M3 12A9 3 0 0 0 21 12"/></>);
+    const Building2 = makeIcon(<><path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/></>);
+    const Heart = makeIcon(<><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></>);
+    const Shield = makeIcon(<><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10"/></>);
+    const ChevronRight = makeIcon(<><path d="m9 18 6-6-6-6"/></>);
+    const ExternalLink = makeIcon(<><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" x2="21" y1="14" y2="3"/></>);
+    const AlertTriangle = makeIcon(<><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></>);
+    const CheckCircle = makeIcon(<><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></>);
+    const Clock = makeIcon(<><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></>);
+    const Star = makeIcon(<><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></>);
+    const Layers = makeIcon(<><path d="m12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></>);
+    const BarChart3 = makeIcon(<><path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/></>);
+    const Target = makeIcon(<><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></>);
+    const Globe = makeIcon(<><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></>);
+    const FileText = makeIcon(<><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M10 9H8"/><path d="M16 13H8"/><path d="M16 17H8"/></>);
+    const Bell = makeIcon(<><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></>);
+    const ArrowUpRight = makeIcon(<><path d="M7 7h10v10"/><path d="M7 17 17 7"/></>);
+    const ArrowDownRight = makeIcon(<><path d="m7 7 10 10"/><path d="M17 7v10H7"/></>);
+    const Minus = makeIcon(<><path d="M5 12h14"/></>);
+    const Eye = makeIcon(<><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></>);
 
 
 
