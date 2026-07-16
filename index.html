@@ -5,8 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard โครงการสานพลังเสริมสร้างจังหวัดเข้มแข็ง (ภาคีอาสา)</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
   <style>
     body { margin: 0; font-family: 'Segoe UI', Tahoma, sans-serif; background: #f8fafc; }
     #loading { display: flex; align-items: center; justify-content: center; height: 100vh; font-size: 1.2em; color: #666; }
@@ -15,10 +13,14 @@
 <body>
   <div id="root"><div id="loading">กำลังโหลด Dashboard...</div></div>
 
-  <!-- Load Recharts via ES module, then boot Babel -->
+  <!-- Load ALL deps from esm.sh to avoid React dual-instance -->
   <script type="module">
-    // Import Recharts via esm.sh (bundles its own React but we override below)
-    import * as RechartsModule from 'https://esm.sh/recharts@2.12.7?external=react,react-dom&alias=react:https://esm.sh/react@18.2.0,react-dom:https://esm.sh/react-dom@18.2.0';
+    import React from 'https://esm.sh/react@18.2.0';
+    import ReactDOM from 'https://esm.sh/react-dom@18.2.0';
+    import * as RechartsModule from 'https://esm.sh/recharts@2.12.7?deps=react@18.2.0,react-dom@18.2.0';
+
+    window.React = React;
+    window.ReactDOM = ReactDOM;
     window.Recharts = RechartsModule;
 
     // Load Babel standalone, then process our app script
