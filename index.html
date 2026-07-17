@@ -723,8 +723,8 @@ function initTWBICharts(){
     {label:'การศึกษา',data:available.map(t=>t.edu),backgroundColor:DIM_COLORS[3]+'cc'},
     {label:'การมีส่วนร่วม',data:available.map(t=>t.civic),backgroundColor:DIM_COLORS[4]+'cc'},
   ]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}},scales:{y:{max:100,title:{display:true,text:'คะแนน'}},x:{ticks:{font:{size:10}}}}}});
-  const top4=available.slice(0,4);const radarColors=['#3b82f6','#ef4444','#10b981','#f59e0b'];
-  charts.twbiRadar=new Chart(document.getElementById('chartTWBIRadar'),{type:'radar',data:{labels:TWBI_DIMS,datasets:top4.map((t,i)=>({label:t.province+' ('+t.overall.toFixed(1)+')',data:[t.health,t.socEcon,t.env,t.edu,t.civic],borderColor:radarColors[i],backgroundColor:radarColors[i]+'22',borderWidth:2,pointRadius:3}))},options:{responsive:true,scales:{r:{min:0,max:100,ticks:{stepSize:20}}},plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}}}});
+  const radarColors=['#3b82f6','#ef4444','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316','#06b6d4','#84cc16','#a855f7','#e11d48','#0ea5e9'];
+  charts.twbiRadar=new Chart(document.getElementById('chartTWBIRadar'),{type:'radar',data:{labels:TWBI_DIMS,datasets:available.map((t,i)=>({label:t.province+' ('+t.overall.toFixed(1)+')',data:[t.health,t.socEcon,t.env,t.edu,t.civic],borderColor:radarColors[i%radarColors.length],backgroundColor:radarColors[i%radarColors.length]+'18',borderWidth:2,pointRadius:3}))},options:{responsive:true,scales:{r:{min:0,max:100,ticks:{stepSize:20}}},plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:10}}}}}});
 }
 
 // ===================== PROVINCES =====================
@@ -738,8 +738,8 @@ function renderProvinces(){
     const d=PROVINCE_DETAIL[prov]||{};
     const twbi=TWBI.find(t=>t.province===prov);
     const kpiAvg = d.kpi ? Math.round(Object.values(d.kpi).reduce((s,v)=>s+v,0)/Object.values(d.kpi).length) : 0;
-    return `<tr>
-      <td class="font-semibold">${prov}</td>
+    return `<tr style="cursor:pointer" onclick="openProvince('${prov}')">
+      <td class="font-semibold text-blue-700">${prov}</td>
       <td><span class="badge ${d.phase===1?'phase1':'phase2'}">เฟส ${d.phase}</span></td>
       <td class="text-sm">${d.zone||'-'}</td>
       <td class="text-center font-mono">${twbi&&twbi.overall?twbi.overall.toFixed(2):'<span class="text-gray-400 italic">รอ</span>'}</td>
