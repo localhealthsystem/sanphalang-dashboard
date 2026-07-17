@@ -235,10 +235,10 @@ const TWBI = [
   {province:'สุพรรณบุรี',phase:2,overall:61.54,rank:49,health:53.85,socEcon:76.52,env:32.27,edu:83.60,civic:61.47},
   {province:'นครสวรรค์',phase:1,overall:57.40,rank:66,health:42.37,socEcon:66.57,env:48.18,edu:68.19,civic:61.67},
   {province:'อุบลราชธานี',phase:2,overall:51.48,rank:76,health:66.27,socEcon:56.47,env:37.06,edu:57.79,civic:39.83},
-  {province:'ตราด',phase:1,overall:null,rank:null,health:null,socEcon:null,env:null,edu:null,civic:null},
-  {province:'พัทลุง',phase:1,overall:null,rank:null,health:null,socEcon:null,env:null,edu:null,civic:null},
-  {province:'ปทุมธานี',phase:2,overall:null,rank:null,health:null,socEcon:null,env:null,edu:null,civic:null},
-  {province:'ชัยภูมิ',phase:2,overall:null,rank:null,health:null,socEcon:null,env:null,edu:null,civic:null},
+  {province:'ตราด',phase:1,overall:64.34,rank:38,health:67.34,socEcon:62.69,env:45.77,edu:76.49,civic:69.43},
+  {province:'พัทลุง',phase:1,overall:70.12,rank:19,health:77.19,socEcon:45.02,env:65.80,edu:90.16,civic:72.42},
+  {province:'ปทุมธานี',phase:2,overall:71.06,rank:15,health:84.59,socEcon:87.50,env:51.74,edu:74.62,civic:56.84},
+  {province:'ชัยภูมิ',phase:2,overall:59.62,rank:60,health:42.85,socEcon:79.68,env:43.86,edu:69.43,civic:62.30},
 ];
 
 const INDICATORS_CORE = [
@@ -377,6 +377,165 @@ const AGENCIES = [
   {abbr:'สรพ.',full:'สถาบันรับรองคุณภาพสถานพยาบาล (องค์การมหาชน)',role:'วิชาการด้านคุณภาพระบบบริการสุขภาพ',budget:'ภาคีสมทบ',activities:['เจ้าภาพประชุม ภสพ. ครั้งที่ 10','สนับสนุนมาตรฐานคุณภาพระบบบริการ','เชื่อมกับกระบวนการ HA ระดับจังหวัด'],hosting:'เจ้าภาพ ภสพ. ครั้งที่ 10',contact:'ผู้อำนวยการ สรพ.'},
   {abbr:'สพฉ.',full:'สถาบันการแพทย์ฉุกเฉินแห่งชาติ',role:'ระบบข้อมูลฉุกเฉิน | Share Plus Platform',budget:'ภาคีสมทบ + พัฒนา Share Plus Platform',activities:['เจ้าภาพประชุม ภสพ. ครั้งที่ 11','พัฒนา Share Plus Platform (ระบบข้อมูลกลาง)','สนับสนุนระบบข้อมูลฉุกเฉินระดับจังหวัด','เชื่อมข้อมูลสุขภาวะชุมชน'],hosting:'เจ้าภาพ ภสพ. ครั้งที่ 11',contact:'เลขาธิการ สพฉ. / ทีม Share Plus'},
 ];
+
+const TWBI_SNAPSHOT = {
+  'กระบี่':{
+    strength:{dim:'สิ่งแวดล้อม',score:87.63,rank:2},
+    watchpoint:{dim:'การมีส่วนร่วม',score:57.12,rank:49},
+    highlights:[
+      {label:'PM2.5 เฉลี่ย',value:'14.18 มคก./ลบ.ม.',note:'อันดับ 6 — คุณภาพอากาศดีเด่น'},
+      {label:'อัตราตาย NCD',value:'98.15/แสนปชก.',note:'อันดับ 7 — ต่ำมาก (ดี)'},
+      {label:'ใช้สิทธิเลือกตั้ง',value:'82.53%',note:'อันดับ 9 — สูง'},
+      {label:'อาชญากรรม',value:'192.06/แสนปชก.',note:'อันดับ 75 — สูงมาก (เฝ้าระวัง)'},
+    ],
+    sharePartners:'สช. + สปสช. + อบจ.กระบี่ + เครือข่ายชุมชนชายฝั่ง + มูลนิธิอันดามัน',
+    questions:['ทำไมสิ่งแวดล้อมดีเยี่ยมแต่การมีส่วนร่วมต่ำ — การท่องเที่ยวดึงคนออกจากกิจกรรมภาคพลเมืองหรือไม่?','อัตราอาชญากรรมสูงลำดับ 75 สัมพันธ์กับเมืองท่องเที่ยวอย่างไร?']
+  },
+  'ขอนแก่น':{
+    strength:{dim:'การศึกษา',score:92.31,rank:2},
+    watchpoint:{dim:'สุขภาพ',score:63.03,rank:39},
+    highlights:[
+      {label:'ความยากจน',value:'0.00%',note:'อันดับ 1 — ไม่มีประชากรต่ำกว่าเส้นยากจน'},
+      {label:'คุณภาพน้ำผิวดิน',value:'81.91 คะแนน',note:'อันดับ 7 — ดีมาก'},
+      {label:'พื้นที่สีเขียว',value:'8.62 ตร.ม./คน',note:'อันดับ 4 — สูงมาก'},
+      {label:'อัตราตาย NCD',value:'126.93/แสนปชก.',note:'อันดับ 31 — ปานกลาง'},
+    ],
+    sharePartners:'สช. + สสส. + มข. + เทศบาลนครขอนแก่น + 5 เทศบาลเขตเมือง + สปสช.',
+    questions:['ขอนแก่นมีการศึกษาอันดับ 2 และไม่มีความยากจน แต่สุขภาพอยู่อันดับ 39 — อะไรคือปัจจัยกดดันด้านสุขภาพ?','Sawathi Living Model สามารถช่วยยกระดับมิติสุขภาพได้อย่างไร?']
+  },
+  'กรุงเทพมหานคร':{
+    strength:{dim:'สุขภาพ',score:94.74,rank:2},
+    watchpoint:{dim:'การมีส่วนร่วม',score:35.65,rank:74},
+    highlights:[
+      {label:'รายได้ครัวเรือน',value:'สูงสุด',note:'เมืองหลวง — ฐานเศรษฐกิจใหญ่'},
+      {label:'การมีส่วนร่วม',value:'35.65 คะแนน',note:'อันดับ 74 — ต่ำมาก (วิกฤต)'},
+      {label:'สุขภาพ',value:'94.74 คะแนน',note:'อันดับ 2 — สูงมาก'},
+      {label:'สิ่งแวดล้อม',value:'65.96 คะแนน',note:'อันดับ 16 — ดี'},
+    ],
+    sharePartners:'สช. + กทม. + สปสช. + สสส. + เครือข่ายชุมชนเมือง + ภาคเอกชน',
+    questions:['ทำไมเมืองที่มีทรัพยากรมากที่สุดกลับมีการมีส่วนร่วมต่ำที่สุด?','โครงสร้าง กทม. ที่ซับซ้อน ส่งผลต่อ Civic Engagement อย่างไร?']
+  },
+  'เชียงราย':{
+    strength:{dim:'การมีส่วนร่วม',score:77.00,rank:17},
+    watchpoint:{dim:'สิ่งแวดล้อม',score:55.14,rank:32},
+    highlights:[
+      {label:'PM2.5 เฉลี่ย',value:'29.79 มคก./ลบ.ม.',note:'อันดับ 72 — วิกฤตฝุ่น'},
+      {label:'สัดส่วนโครงการภาคปชช.',value:'52.40%',note:'อันดับ 8 — ภาคพลเมืองเข้มแข็ง'},
+      {label:'ใช้สิทธิเลือกตั้ง',value:'77.35%',note:'อันดับ 38'},
+      {label:'อินเทอร์เน็ต',value:'91.12%',note:'อันดับ 25'},
+    ],
+    sharePartners:'สช. + สสส. + เครือข่ายน้ำกก-โขง + อบจ.เชียงราย + ม.แม่ฟ้าหลวง',
+    questions:['เชียงรายมีภาคพลเมืองเข้มแข็ง (อันดับ 17) จะใช้พลังนี้แก้วิกฤต PM2.5 ได้อย่างไร?','ตัวชี้วัดน้ำผิวดิน 70.57 สะท้อนคุณภาพน้ำกก-โขงอย่างไร?']
+  },
+  'พิษณุโลก':{
+    strength:{dim:'การศึกษา',score:82.11,rank:17},
+    watchpoint:{dim:'สิ่งแวดล้อม',score:39.69,rank:55},
+    highlights:[
+      {label:'อัตราตาย NCD',value:'208.84/แสนปชก.',note:'อันดับ 75 — สูงมากวิกฤต'},
+      {label:'กิจกรรมทางกาย',value:'74.20%',note:'อันดับ 13 — ดี'},
+      {label:'PM2.5 เฉลี่ย',value:'24.60 มคก./ลบ.ม.',note:'อันดับ 41 — ปานกลาง'},
+      {label:'พื้นที่สีเขียว',value:'2.76 ตร.ม./คน',note:'อันดับ 34 — ต่ำ'},
+    ],
+    sharePartners:'สช. + ม.นเรศวร + อบจ.พิษณุโลก + สปสช.เขต 2 + เครือข่ายสุขภาพชุมชน',
+    questions:['อัตราตายจาก NCD สูงอันดับ 75 ทั้งที่กิจกรรมทางกายดี — ปัจจัยอะไรที่ขาดหายไป?','สิ่งแวดล้อมอันดับ 55 เชื่อมโยงกับคุณภาพอากาศและพื้นที่สีเขียวอย่างไร?']
+  },
+  'บึงกาฬ':{
+    strength:{dim:'เศรษฐกิจ-สังคม',score:93.72,rank:1},
+    watchpoint:{dim:'การศึกษา',score:48.05,rank:72},
+    highlights:[
+      {label:'ความยากจน',value:'0.47%',note:'อันดับ 11 — ต่ำมาก (ดี)'},
+      {label:'Gini Index',value:'0.34',note:'อันดับ 21 — เสมอภาคดี'},
+      {label:'คุณภาพน้ำผิวดิน',value:'84.00',note:'อันดับ 5 — ดีเยี่ยม'},
+      {label:'คุณภาพการศึกษา',value:'12.24 คะแนน',note:'อันดับ 58 — ต่ำ'},
+    ],
+    sharePartners:'สช. + พอช. + อบจ.บึงกาฬ + เครือข่ายชุมชนริมโขง + สปสช.เขต 8',
+    questions:['บึงกาฬมีเศรษฐกิจ-สังคมอันดับ 1 แต่การศึกษาอันดับ 72 — ความเจริญทางเศรษฐกิจยังไม่แปลงเป็นทุนมนุษย์?','คุณภาพน้ำดีเยี่ยมเป็นทุนที่สามารถต่อยอดเชิงนโยบายได้อย่างไร?']
+  },
+  'สุพรรณบุรี':{
+    strength:{dim:'การศึกษา',score:83.60,rank:14},
+    watchpoint:{dim:'สิ่งแวดล้อม',score:32.27,rank:70},
+    highlights:[
+      {label:'อัตราตาย NCD',value:'199.65/แสนปชก.',note:'อันดับ 74 — สูงมาก'},
+      {label:'PM2.5 เฉลี่ย',value:'22.32 มคก./ลบ.ม.',note:'อันดับ 28 — ปานกลาง'},
+      {label:'การรู้หนังสือ',value:'99.20%',note:'อันดับ 8 — สูงมาก'},
+      {label:'คุณภาพน้ำผิวดิน',value:'62.40',note:'อันดับ 49 — ต่ำ'},
+    ],
+    sharePartners:'สช. + อบจ.สุพรรณบุรี + เครือข่ายสุขภาพชุมชน + สปสช.เขต 5',
+    questions:['สิ่งแวดล้อมอันดับ 70 (โดยเฉพาะคุณภาพน้ำและพื้นที่สีเขียว) จะเป็น Target Agenda ได้หรือไม่?','อัตราตาย NCD สูงมากทั้งที่การศึกษาดี — ปัจจัยเชิงพฤติกรรมอะไรที่ต้องเจาะลึก?']
+  },
+  'นครสวรรค์':{
+    strength:{dim:'การศึกษา',score:68.19,rank:47},
+    watchpoint:{dim:'สุขภาพ',score:42.37,rank:68},
+    highlights:[
+      {label:'อัตราตาย NCD',value:'185.76/แสนปชก.',note:'อันดับ 74 — สูงมาก'},
+      {label:'คุณภาพการศึกษา',value:'11.37 คะแนน',note:'อันดับ 70 — ต่ำ'},
+      {label:'ความยากจน',value:'1.30%',note:'อันดับ 22 — ต่ำ (ดี)'},
+      {label:'กิจกรรมทางกาย',value:'51.20%',note:'อันดับ 52 — ต่ำกว่าเกณฑ์'},
+    ],
+    sharePartners:'สช. + สภาพลเมืองคนนครสวรรค์ + อบจ.นครสวรรค์ + รพ.สวรรค์ประชารักษ์',
+    questions:['สุขภาพอันดับ 68 — อัตราตาย NCD และกิจกรรมทางกายต่ำ สภาพลเมืองจะขับเคลื่อนประเด็นนี้อย่างไร?','ความยากจนต่ำแต่คุณภาพชีวิตโดยรวมยังต่ำ — อะไรคือ "ตัวฉุด" ที่แท้จริง?']
+  },
+  'อุบลราชธานี':{
+    strength:{dim:'สุขภาพ',score:66.27,rank:31},
+    watchpoint:{dim:'สิ่งแวดล้อม',score:37.06,rank:62},
+    highlights:[
+      {label:'PM2.5 เฉลี่ย',value:'27.55 มคก./ลบ.ม.',note:'อันดับ 64 — สูง'},
+      {label:'ความยากจน',value:'7.89%',note:'อันดับ 65 — สูง'},
+      {label:'รายได้ครัวเรือน',value:'20,317 บาท/เดือน',note:'อันดับ 70 — ต่ำ'},
+      {label:'พื้นที่สีเขียว',value:'1.38 ตร.ม./คน',note:'อันดับ 54 — ต่ำ'},
+    ],
+    sharePartners:'สช. + อบจ.อุบลฯ + ม.อุบลฯ + เครือข่ายชุมชนลุ่มน้ำมูล + สปสช.เขต 10',
+    questions:['อุบลฯ คะแนนรวมอันดับ 76 — ทุกมิติต่ำกว่าค่ากลาง จุดเริ่มต้นควรเป็นมิติใด?','ความยากจน 7.89% สูงที่สุดในกลุ่ม — แก้ปัญหาเศรษฐกิจควบคู่สุขภาวะอย่างไร?']
+  },
+  'ตราด':{
+    strength:{dim:'การศึกษา',score:76.49,rank:31},
+    watchpoint:{dim:'สิ่งแวดล้อม',score:45.77,rank:45},
+    highlights:[
+      {label:'รายได้ครัวเรือน',value:'31,521 บาท/เดือน',note:'อันดับ 15 — สูง'},
+      {label:'อินเทอร์เน็ต',value:'91.19%',note:'อันดับ 24 — สูง'},
+      {label:'อัตราตาย NCD',value:'135.46/แสนปชก.',note:'อันดับ 37 — ปานกลาง'},
+      {label:'คุณภาพน้ำผิวดิน',value:'62.64',note:'อันดับ 48 — ต่ำ'},
+    ],
+    sharePartners:'สช. + อบจ.ตราด + เครือข่ายธรรมนูญ 5 ดี + สปสช. + เทศบาลเมืองตราด',
+    questions:['ตราดมีรายได้สูงอันดับ 15 แต่สิ่งแวดล้อมอันดับ 45 — การพัฒนาเศรษฐกิจชายแดนส่งผลต่อสิ่งแวดล้อมอย่างไร?','ธรรมนูญ "5 ดี วิถีตราด" จะช่วยยกระดับคุณภาพน้ำและพื้นที่สีเขียวได้หรือไม่?']
+  },
+  'พัทลุง':{
+    strength:{dim:'การศึกษา',score:90.16,rank:3},
+    watchpoint:{dim:'เศรษฐกิจ-สังคม',score:45.02,rank:71},
+    highlights:[
+      {label:'กิจกรรมทางกาย',value:'72.50%',note:'อันดับ 15 — ดี'},
+      {label:'ใช้สิทธิเลือกตั้ง',value:'84.46%',note:'อันดับ 3 — สูงมาก'},
+      {label:'อาชญากรรม',value:'145.28/แสนปชก.',note:'อันดับ 69 — สูง'},
+      {label:'ความยากจน',value:'12.06%',note:'อันดับ 74 — สูงมาก (วิกฤต)'},
+    ],
+    sharePartners:'สช. + สภาเมืองลุง 50+ คน + อบจ.พัทลุง + เครือข่ายภาคประชาสังคม + สปสช.เขต 12',
+    questions:['พัทลุงมีการศึกษาอันดับ 3 และเลือกตั้งอันดับ 3 แต่ยากจนอันดับ 74 — "Paradox ทุนมนุษย์สูง-รายได้ต่ำ" เกิดจากอะไร?','สภาเมืองลุงที่เข้มแข็งจะแปลง Civic Capital เป็นนโยบายลดความยากจนได้อย่างไร?']
+  },
+  'ปทุมธานี':{
+    strength:{dim:'เศรษฐกิจ-สังคม',score:87.50,rank:4},
+    watchpoint:{dim:'สิ่งแวดล้อม',score:51.74,rank:37},
+    highlights:[
+      {label:'รายได้ครัวเรือน',value:'45,729 บาท/เดือน',note:'อันดับ 1 — สูงสุดในประเทศ'},
+      {label:'การรู้หนังสือ',value:'99.40%',note:'อันดับ 3 — สูงมาก'},
+      {label:'พื้นที่สีเขียว',value:'0.38 ตร.ม./คน',note:'อันดับ 75 — ต่ำมาก (วิกฤต)'},
+      {label:'องค์กรชุมชน',value:'0.21%',note:'อันดับ 71 — ต่ำมาก'},
+    ],
+    sharePartners:'สช. + อบจ.ปทุมธานี + สปสช.เขต 4 + มหาวิทยาลัยในพื้นที่ + ภาคเอกชน',
+    questions:['ปทุมธานีรายได้สูงสุดแต่พื้นที่สีเขียวต่ำสุด — "Growth Paradox" จัดการอย่างไร?','บริบทเมืองปริมณฑลที่คนทำงาน กทม. จะสร้างการมีส่วนร่วมในท้องถิ่นอย่างไร?']
+  },
+  'ชัยภูมิ':{
+    strength:{dim:'เศรษฐกิจ-สังคม',score:79.68,rank:18},
+    watchpoint:{dim:'สุขภาพ',score:42.85,rank:67},
+    highlights:[
+      {label:'อัตราตาย NCD',value:'139.09/แสนปชก.',note:'อันดับ 40 — ปานกลาง'},
+      {label:'กิจกรรมทางกาย',value:'38.90%',note:'อันดับ 68 — ต่ำมาก'},
+      {label:'ผู้สูงอายุมีงานทำ',value:'49.50%',note:'อันดับ 12 — สูง'},
+      {label:'PM2.5 เฉลี่ย',value:'22.40 มคก./ลบ.ม.',note:'อันดับ 29 — ปานกลาง'},
+    ],
+    sharePartners:'สช. + อบจ.ชัยภูมิ + เครือข่ายสุขภาพชุมชน + สปสช.เขต 9 + ม.ราชภัฏชัยภูมิ',
+    questions:['สุขภาพอันดับ 67 โดยเฉพาะกิจกรรมทางกายต่ำมาก — จะออกแบบ intervention อย่างไร?','เศรษฐกิจ-สังคมดีอันดับ 18 แต่สุขภาพต่ำ — ความมั่งคั่งยังไม่แปลงเป็นสุขภาวะ?']
+  },
+};
 
 const TWBI_DIMS = ['สุขภาพ','เศรษฐกิจ-สังคม','สิ่งแวดล้อม','การศึกษา','การมีส่วนร่วม'];
 const DIM_COLORS = ['#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6'];
@@ -861,7 +1020,46 @@ function openProvince(name){
   const issHtml=d.issues.map(x=>`<span class="drilldown-chip">${x}</span>`).join('');
   const hilHtml=(d.highlights||[]).map(x=>`<div class="drilldown-highlight">${x}</div>`).join('');
   const twbi=TWBI.find(t=>t.province===name);
-  const twbiHtml=twbi&&twbi.overall?`<div class="drilldown-section"><div class="drilldown-section-title">TWBI Score</div><div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center"><div style="font-size:2rem;font-weight:800;color:#2563eb">${twbi.overall.toFixed(2)}</div><div style="font-size:.85rem;color:#64748b">อันดับ ${twbi.rank}/77</div></div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;text-align:center;font-size:11px">${['สุขภาพ','ศก.-สังคม','สิ่งแวดล้อม','การศึกษา','มีส่วนร่วม'].map((dim,i)=>`<div><div style="color:${DIM_COLORS[i]};font-weight:700">${[twbi.health,twbi.socEcon,twbi.env,twbi.edu,twbi.civic][i].toFixed(1)}</div><div style="color:#94a3b8">${dim}</div></div>`).join('')}</div></div>`:'';
+  const snap=TWBI_SNAPSHOT[name];
+  const twbiHtml=twbi&&twbi.overall?`<div class="drilldown-section" style="background:linear-gradient(135deg,#eff6ff,#f0fdf4);border-radius:12px;padding:16px;border:1px solid #bfdbfe">
+    <div class="drilldown-section-title" style="color:#1e40af;font-size:15px">สถานการณ์ TWBI — Provincial Snapshot</div>
+    <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center;margin-bottom:12px">
+      <div style="font-size:2.2rem;font-weight:800;color:#2563eb">${twbi.overall.toFixed(2)}<span style="font-size:.9rem;color:#64748b;font-weight:400"> /100</span></div>
+      <div style="font-size:.85rem;color:#64748b;background:#e2e8f0;padding:4px 10px;border-radius:20px">อันดับ ${twbi.rank}/77 จังหวัด</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-bottom:14px;text-align:center;font-size:11px">
+      ${['สุขภาพ','ศก.-สังคม','สิ่งแวดล้อม','การศึกษา','มีส่วนร่วม'].map((dim,i)=>{
+        const v=[twbi.health,twbi.socEcon,twbi.env,twbi.edu,twbi.civic][i];
+        const bg=v>=75?'#dcfce7':v>=50?'#fef9c3':'#fee2e2';
+        return `<div style="background:${bg};border-radius:8px;padding:6px 2px"><div style="color:${DIM_COLORS[i]};font-weight:700;font-size:13px">${v.toFixed(1)}</div><div style="color:#64748b;font-size:10px">${dim}</div></div>`;
+      }).join('')}
+    </div>
+    ${snap?`
+    <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+      <div style="flex:1;min-width:120px;background:#dcfce7;border-radius:8px;padding:8px 10px">
+        <div style="font-size:10px;color:#166534;font-weight:600;margin-bottom:2px">จุดแข็ง</div>
+        <div style="font-size:13px;font-weight:700;color:#15803d">${snap.strength.dim}</div>
+        <div style="font-size:11px;color:#166534">${snap.strength.score.toFixed(1)} (อันดับ ${snap.strength.rank})</div>
+      </div>
+      <div style="flex:1;min-width:120px;background:#fee2e2;border-radius:8px;padding:8px 10px">
+        <div style="font-size:10px;color:#991b1b;font-weight:600;margin-bottom:2px">จุดเฝ้าระวัง</div>
+        <div style="font-size:13px;font-weight:700;color:#dc2626">${snap.watchpoint.dim}</div>
+        <div style="font-size:11px;color:#991b1b">${snap.watchpoint.score.toFixed(1)} (อันดับ ${snap.watchpoint.rank})</div>
+      </div>
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;color:#1e40af;font-weight:600;margin-bottom:6px">ตัวชี้วัดที่น่าสนใจ</div>
+      ${snap.highlights.map(h=>`<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid #e2e8f0;font-size:11px"><span style="color:#334155;font-weight:500">${h.label}: ${h.value}</span><span style="color:#64748b;font-size:10px">${h.note}</span></div>`).join('')}
+    </div>
+    <div style="margin-bottom:10px">
+      <div style="font-size:11px;color:#1e40af;font-weight:600;margin-bottom:4px">ภาคี SHARE+</div>
+      <div style="font-size:11px;color:#475569;line-height:1.5">${snap.sharePartners}</div>
+    </div>
+    <div>
+      <div style="font-size:11px;color:#1e40af;font-weight:600;margin-bottom:4px">คำถามเปิดวงสนทนา</div>
+      ${snap.questions.map(q=>`<div style="font-size:11px;color:#6b21a8;line-height:1.5;margin-bottom:4px;padding-left:12px;border-left:2px solid #c084fc">${q}</div>`).join('')}
+    </div>
+    `:''}</div>`:'';
   document.getElementById('drilldownBody').innerHTML=`
     <div class="drilldown-section"><div class="drilldown-section-title">วิสัยทัศน์</div><div style="font-size:14px;font-style:italic;color:#1e293b;line-height:1.6">${d.vision}</div></div>
     <div class="drilldown-section"><div class="drilldown-section-title">ประเด็นขับเคลื่อน</div><div>${issHtml}</div></div>
