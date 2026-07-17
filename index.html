@@ -25,6 +25,24 @@ canvas{max-height:320px}
 .phase-toggle button{padding:6px 16px;border-radius:8px;font-size:.85rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;background:transparent;color:#64748b}
 .phase-toggle button.active{background:#fff;color:#1e40af;box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .phase-toggle button:hover:not(.active){background:rgba(255,255,255,.5)}
+.drilldown-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;opacity:0;pointer-events:none;transition:opacity .3s}
+.drilldown-overlay.open{opacity:1;pointer-events:auto}
+.drilldown-panel{position:fixed;top:0;right:-480px;width:460px;max-width:90vw;height:100vh;background:#fff;z-index:101;box-shadow:-4px 0 20px rgba(0,0,0,.15);transition:right .3s;overflow-y:auto}
+.drilldown-panel.open{right:0}
+.drilldown-header{padding:20px 24px;color:#fff;position:relative}
+.drilldown-close{position:absolute;top:12px;right:16px;background:rgba(255,255,255,.2);border:none;color:#fff;font-size:20px;width:32px;height:32px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.drilldown-close:hover{background:rgba(255,255,255,.4)}
+.drilldown-body{padding:20px 24px}
+.drilldown-section{margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid #f0f0f0}
+.drilldown-section:last-child{border-bottom:none}
+.drilldown-section-title{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:#94a3b8;font-weight:700;margin-bottom:8px}
+.drilldown-chip{display:inline-block;padding:3px 10px;border-radius:20px;font-size:12px;background:#eef2ff;color:#4338ca;margin:2px 4px 2px 0}
+.drilldown-highlight{font-size:13px;color:#1e293b;padding:6px 0 6px 18px;position:relative;line-height:1.5}
+.drilldown-highlight::before{content:'';position:absolute;left:4px;top:12px;width:6px;height:6px;border-radius:50%;background:#3b82f6}
+.drilldown-kpi-bar-wrap{height:6px;background:#e5e7eb;border-radius:3px;overflow:hidden}
+.drilldown-kpi-bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.province-card{cursor:pointer;transition:all .2s}.province-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.agency-card{cursor:pointer;transition:all .2s}.agency-card:hover{transform:translateY(-2px);box-shadow:0 4px 12px rgba(0,0,0,.1)}
 </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
@@ -64,6 +82,17 @@ canvas{max-height:320px}
 
 <!-- MAIN CONTENT -->
 <main class="max-w-7xl mx-auto px-4 py-6" id="mainContent"></main>
+
+<!-- DRILLDOWN OVERLAY -->
+<div class="drilldown-overlay" id="drilldownOverlay" onclick="closeDrilldown()"></div>
+<div class="drilldown-panel" id="drilldownPanel">
+  <div class="drilldown-header" id="drilldownHeader" style="background:linear-gradient(135deg,#2563eb,#1e40af)">
+    <button class="drilldown-close" onclick="closeDrilldown()">&times;</button>
+    <h2 style="font-size:1.3rem;font-weight:700;margin:0" id="drilldownTitle"></h2>
+    <p style="font-size:.85rem;opacity:.85;margin:4px 0 0" id="drilldownSubtitle"></p>
+  </div>
+  <div class="drilldown-body" id="drilldownBody"></div>
+</div>
 
 <!-- FOOTER -->
 <footer class="text-center text-xs text-gray-400 py-4 border-t mt-8">
@@ -244,31 +273,109 @@ const PARTNERSHIP_RUBRIC = [
 ];
 
 const PROVINCE_DETAIL = {
-  'เชียงราย':{phase:1,zone:'เขต 1',vision:'"เชียงรายล้านนาแห่งความสุข"',issues:['มลพิษฝุ่น PM 2.5','คุณภาพน้ำกก-โขง'],highlights:['ถอดบทเรียนเครือข่ายน้ำกก-โขง','ลงนาม MOU ระดับจังหวัด'],kpi:{กลไก:100,MOU:100,ประเด็น:60,สื่อสาร:20}},
-  'นครสวรรค์':{phase:1,zone:'เขต 3',vision:'"นครสวรรค์ สวรรค์ของทุกคน"',issues:['สังคมสูงวัย','สิทธิชุมชน'],highlights:['สภาพลเมืองขับเคลื่อนคุณภาพชีวิตผู้สูงอายุ','เวทีประชาชน 5 อำเภอ'],kpi:{กลไก:100,MOU:100,ประเด็น:60,สื่อสาร:20}},
-  'ขอนแก่น':{phase:1,zone:'เขต 7',vision:'"ขอนแก่นอยู่ดีมีแฮง ฮักแพงแบ่งปัน"',issues:['สุขภาวะชุมชนเมือง','Sawathi Living Model'],highlights:['บ้านฝางโมเดล ต้นแบบ LTC','MOU 5 เทศบาล'],kpi:{กลไก:100,MOU:100,ประเด็น:80,สื่อสาร:30}},
-  'ตราด':{phase:1,zone:'เขต 6',vision:'"ปัญจปิฎก 5 ดี วิถีตราด"',issues:['เด็กและเยาวชน','NCDs'],highlights:['ธรรมนูญสุขภาพ "5 ดี" ครอบคลุม 5 มิติ','NCDs ขยายสู่ 8 อปท.'],kpi:{กลไก:100,MOU:100,ประเด็น:70,สื่อสาร:20}},
-  'พัทลุง':{phase:1,zone:'เขต 12',vision:'"พัทลุงมหานครแห่งความสุข"',issues:['ระบบสุขภาพชุมชน','ทุนทางสังคม'],highlights:['สภาเมืองลุง 50+ คน','พัฒนาระบบข้อมูลกลาง'],kpi:{กลไก:100,MOU:100,ประเด็น:50,สื่อสาร:20}},
-  'พิษณุโลก':{phase:2,zone:'เขต 2',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
-  'ปทุมธานี':{phase:2,zone:'เขต 4',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
-  'สุพรรณบุรี':{phase:2,zone:'เขต 5',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
-  'บึงกาฬ':{phase:2,zone:'เขต 8',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
-  'ชัยภูมิ':{phase:2,zone:'เขต 9',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
-  'อุบลราชธานี':{phase:2,zone:'เขต 10',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
-  'กระบี่':{phase:2,zone:'เขต 11',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
-  'กรุงเทพมหานคร':{phase:2,zone:'เขต 13',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'เชียงราย':{phase:1,zone:'เขตสุขภาพที่ 1',vision:'"เชียงรายล้านนาแห่งความสุข"',
+    issues:['มลพิษฝุ่น PM 2.5','คุณภาพน้ำกก-โขง','สิ่งแวดล้อม'],
+    mechanism:'สร้างพื้นที่กลางรวมพลังเครือข่ายข้ามหน่วยงาน ประเด็นน้ำกก-โขง',
+    mou:'มีข้อตกลงความร่วมมือระดับจังหวัด (ลงนามแล้ว)',
+    highlights:['ถอดบทเรียนเครือข่ายน้ำกก-โขง','ประสานเวทีหลายภาคส่วนข้ามเขต'],
+    challenge:'ประสานเวลาภาคีหลากหลาย / ครบ 9 ด้านในงวดแรกทำได้ยาก',
+    kpi:{กลไก:100,MOU:100,ประเด็น:60,สื่อสาร:20}},
+  'นครสวรรค์':{phase:1,zone:'เขตสุขภาพที่ 3',vision:'"นครสวรรค์ สวรรค์ของทุกคน"',
+    issues:['สังคมสูงวัย / คุณภาพชีวิต','สิทธิชุมชน','การจัดการทรัพยากร'],
+    mechanism:'สภาพลเมืองคนนครสวรรค์ + เวทีระดับจังหวัดและอำเภอ',
+    mou:'ลงนาม MOU 26 พ.ย. 2568',
+    highlights:['สภาพลเมืองขับเคลื่อนคุณภาพชีวิตผู้สูงอายุ','เวทีประชาชนระดับอำเภอ 5 อำเภอ'],
+    challenge:'ระยะเวลาการเปิดสภาพลเมือง / เชื่อมระบบข้อมูลหน่วยงาน',
+    kpi:{กลไก:100,MOU:100,ประเด็น:60,สื่อสาร:20}},
+  'ขอนแก่น':{phase:1,zone:'เขตสุขภาพที่ 7',vision:'"ขอนแก่นอยู่ดีมีแฮง ฮักแพงแบ่งปัน"',
+    issues:['สุขภาวะชุมชนเมือง','Sawathi Living Model','น้ำท่วมเมือง'],
+    mechanism:'ทีมไข่แดง + ทีมไข่ขาว | บ้านฝางโมเดล | MOU 5 เทศบาล',
+    mou:'MOU ลงนาม 5 เทศบาล',
+    highlights:['Sawathi Living — โรงเรียนเบาหวาน + กุฏิชีวบาล','บ้านฝางโมเดล ต้นแบบ LTC','MOU 5 เทศบาลในเขตเมือง'],
+    challenge:'Data Silos ฐานข้อมูลต่างหน่วยงานไม่เชื่อมกัน / งบประมาณพื้นที่จำกัด',
+    kpi:{กลไก:100,MOU:100,ประเด็น:80,สื่อสาร:30}},
+  'ตราด':{phase:1,zone:'เขตสุขภาพที่ 6',vision:'"ปัญจปิฎก 5 ดี วิถีตราด"',
+    issues:['เด็กและเยาวชน','โรคไม่ติดต่อเรื้อรัง (NCDs)','ประชากรเปราะบาง'],
+    mechanism:'5 คณะทำงาน: ขับเคลื่อน / สนับสนุน / เชื่อมธุรกิจ / สมดุล / ขยายผล',
+    mou:'ธรรมนูญ "5 ดี วิถีตราด" — เครื่องมือนโยบายระดับจังหวัด',
+    highlights:['ธรรมนูญสุขภาพ "5 ดี" ครอบคลุม 5 มิติ','NCDs ขยายสู่ 8 อปท.','ตราดจัดการตนเองอย่างสมบูรณ์'],
+    challenge:'ภัยพิบัติชายแดนทำกิจกรรมเลื่อน / NCDs ยังค้าง 4 อปท.',
+    kpi:{กลไก:100,MOU:100,ประเด็น:70,สื่อสาร:20}},
+  'พัทลุง':{phase:1,zone:'เขตสุขภาพที่ 12',vision:'"พัทลุงมหานครแห่งความสุข"',
+    issues:['ระบบสุขภาพชุมชน','การมีส่วนร่วมประชาชน','ทุนทางสังคม'],
+    mechanism:'สภาเมืองลุง 50+ คน | ตัวแทนทุกภาคส่วน',
+    mou:'ข้อตกลงความร่วมมือระดับจังหวัด',
+    highlights:['สภาเมืองลุง 50+ คน จากทุกภาคส่วน','พัฒนาระบบข้อมูลกลางจังหวัด','เชื่อมฐานข้อมูล สปสช. + อปท.'],
+    challenge:'ระบบข้อมูลกลางยังพัฒนาไม่เสร็จ / รายงาน รข.001 ยังไม่ครบถ้วน',
+    kpi:{กลไก:100,MOU:100,ประเด็น:50,สื่อสาร:20}},
+  'พิษณุโลก':{phase:2,zone:'เขตสุขภาพที่ 2',vision:'พิษณุโลก — จังหวัดใหม่เฟส 2',
+    issues:['อยู่ระหว่างกำหนด Target Agenda'],
+    mechanism:'อยู่ระหว่างจัดตั้งกลไกระดับจังหวัด (Gate A: Ready)',
+    mou:'อยู่ระหว่างเตรียมข้อตกลง',
+    highlights:['เริ่มต้นโครงการ พ.ค. 2569','Gate A: กำหนด Target Agenda ภายใน 6 เดือน'],
+    challenge:'จัดตั้งทีมงาน TOR และเวทีตัดสินใจร่วม',
+    kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'ปทุมธานี':{phase:2,zone:'เขตสุขภาพที่ 4',vision:'ปทุมธานี — จังหวัดใหม่เฟส 2',
+    issues:['อยู่ระหว่างกำหนด Target Agenda'],
+    mechanism:'อยู่ระหว่างจัดตั้งกลไกระดับจังหวัด (Gate A: Ready)',
+    mou:'อยู่ระหว่างเตรียมข้อตกลง',
+    highlights:['เริ่มต้นโครงการ พ.ค. 2569','บริบทเมืองหลวง — หลายภาคส่วน'],
+    challenge:'บริบทเมืองขนาดใหญ่ หลากหลายภาคส่วน',
+    kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'สุพรรณบุรี':{phase:2,zone:'เขตสุขภาพที่ 5',vision:'สุพรรณบุรี — จังหวัดใหม่เฟส 2',
+    issues:['อยู่ระหว่างกำหนด Target Agenda'],
+    mechanism:'อยู่ระหว่างจัดตั้งกลไกระดับจังหวัด (Gate A: Ready)',
+    mou:'อยู่ระหว่างเตรียมข้อตกลง',
+    highlights:['เริ่มต้นโครงการ พ.ค. 2569'],
+    challenge:'บูรณาการกับเครือข่ายสุขภาพชุมชนที่มีอยู่',
+    kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'บึงกาฬ':{phase:2,zone:'เขตสุขภาพที่ 8',vision:'บึงกาฬ — จังหวัดใหม่เฟส 2',
+    issues:['อยู่ระหว่างกำหนด Target Agenda'],
+    mechanism:'อยู่ระหว่างจัดตั้งกลไกระดับจังหวัด (Gate A: Ready)',
+    mou:'อยู่ระหว่างเตรียมข้อตกลง',
+    highlights:['เริ่มต้นโครงการ พ.ค. 2569'],
+    challenge:'ฐานทรัพยากรจำกัด ต้องการการสนับสนุนจากภาคีส่วนกลาง',
+    kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'ชัยภูมิ':{phase:2,zone:'เขตสุขภาพที่ 9',vision:'ชัยภูมิ — จังหวัดใหม่เฟส 2',
+    issues:['อยู่ระหว่างกำหนด Target Agenda'],
+    mechanism:'อยู่ระหว่างจัดตั้งกลไกระดับจังหวัด (Gate A: Ready)',
+    mou:'อยู่ระหว่างเตรียมข้อตกลง',
+    highlights:['เริ่มต้นโครงการ พ.ค. 2569'],
+    challenge:'เชื่อมกับเครือข่ายสุขภาพชุมชนที่มีอยู่',
+    kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'อุบลราชธานี':{phase:2,zone:'เขตสุขภาพที่ 10',vision:'อุบลราชธานี — จังหวัดใหม่เฟส 2',
+    issues:['อยู่ระหว่างกำหนด Target Agenda'],
+    mechanism:'อยู่ระหว่างจัดตั้งกลไกระดับจังหวัด (Gate A: Ready)',
+    mou:'อยู่ระหว่างเตรียมข้อตกลง',
+    highlights:['เริ่มต้นโครงการ พ.ค. 2569'],
+    challenge:'ครอบคลุมพื้นที่กว้างและหลายอำเภอ',
+    kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'กระบี่':{phase:2,zone:'เขตสุขภาพที่ 11',vision:'กระบี่ — จังหวัดใหม่เฟส 2',
+    issues:['อยู่ระหว่างกำหนด Target Agenda'],
+    mechanism:'อยู่ระหว่างจัดตั้งกลไกระดับจังหวัด (Gate A: Ready)',
+    mou:'อยู่ระหว่างเตรียมข้อตกลง',
+    highlights:['เริ่มต้นโครงการ พ.ค. 2569'],
+    challenge:'ความหลากหลายชุมชนชายฝั่ง + การท่องเที่ยว',
+    kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'กรุงเทพมหานคร':{phase:2,zone:'เขตสุขภาพที่ 13',vision:'กรุงเทพมหานคร — จังหวัดใหม่เฟส 2',
+    issues:['อยู่ระหว่างกำหนด Target Agenda'],
+    mechanism:'อยู่ระหว่างจัดตั้งกลไกระดับจังหวัด (Gate A: Ready)',
+    mou:'อยู่ระหว่างเตรียมข้อตกลง',
+    highlights:['เริ่มต้นโครงการ พ.ค. 2569','บริบทมหานคร — กลไก กทม. + หน่วยงานกลาง'],
+    challenge:'ความซับซ้อนของโครงสร้างการบริหาร กทม.',
+    kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
 };
 
 const AGENCIES = [
-  {abbr:'สสส.',full:'สำนักงานกองทุนสนับสนุนการสร้างเสริมสุขภาพ',role:'Seed funding, นวัตกรรม, สื่อสารสาธารณะ'},
-  {abbr:'สช.',full:'สำนักงานคณะกรรมการสุขภาพแห่งชาติ',role:'สมัชชาสุขภาพ, ธรรมนูญ, กระบวนการมีส่วนร่วม'},
-  {abbr:'สปสช.',full:'สำนักงานหลักประกันสุขภาพแห่งชาติ',role:'กองทุนจังหวัด, กปท., LTC, ข้อมูลระบบสุขภาพ'},
-  {abbr:'พอช.',full:'สถาบันพัฒนาองค์กรชุมชน (องค์การมหาชน)',role:'กองทุนสวัสดิการชุมชน, เครือข่ายองค์กรชุมชน'},
-  {abbr:'สวรส.',full:'สถาบันวิจัยระบบสาธารณสุข',role:'ทุนวิจัย, ประเมินเชิงพัฒนา (DE), ระบบวิชาการ'},
-  {abbr:'นิด้า',full:'สถาบันบัณฑิตพัฒนบริหารศาสตร์',role:'Data analytics, Policy design, Executive learning'},
-  {abbr:'บพท.',full:'หน่วยบริหารและจัดการทุนด้านการพัฒนาระดับพื้นที่',role:'ทุนพัฒนาพื้นที่/นวัตกรรม, Policy lab'},
-  {abbr:'สพฉ.',full:'สถาบันการแพทย์ฉุกเฉินแห่งชาติ',role:'ระบบข้อมูล EMS, Training, Incident learning'},
-  {abbr:'สรพ.',full:'สถาบันรับรองคุณภาพสถานพยาบาล',role:'มาตรฐานคุณภาพ, ระบบรับรอง'},
+  {abbr:'สสส.',full:'สำนักงานกองทุนสนับสนุนการสร้างเสริมสุขภาพ',role:'แหล่งทุนหลักโครงการ | ขับเคลื่อน Target Agenda Area Approach',budget:'สนับสนุนงบประมาณหลัก 19.8 ล้านบาท (เฟส 2 / สสส.)',activities:['กำหนดกรอบยุทธศาสตร์ Target Agenda Area Approach','ติดตามและประเมินผลโครงการ','เชื่อมโยงเครือข่ายระดับชาติ','สนับสนุนการสื่อสารสาธารณะ'],hosting:'ร่วมประชุม ภสพ. ทุกครั้ง',contact:'เลขาธิการ สสส. / ทีมภาคีสัมพันธ์'},
+  {abbr:'สช.',full:'สำนักงานคณะกรรมการสุขภาพแห่งชาติ',role:'องค์กรรับทุนหลัก | กลไกนโยบาย | เลขานุการ ภสพ.',budget:'บริหารจัดการโครงการ บริหารสัญญา และกลไก ภสพ.',activities:['เลขานุการกลไก ภสพ. ทุกครั้ง','จัดทำเอกสารวิชาการและรายงานความก้าวหน้า','ประสานภาคียุทธศาสตร์ 9 หน่วยงาน','พัฒนา Dashboard และระบบข้อมูล','บริหารสัญญาและการเงินโครงการ'],hosting:'เลขานุการ ภสพ. ทุกครั้ง',contact:'ดร.พฤทธา / ทีมสช.'},
+  {abbr:'สวรส.',full:'สถาบันวิจัยระบบสาธารณสุข',role:'งานวิจัยระบบสุขภาพ LTC | สนับสนุน DE ผ่านนิด้า',budget:'สมทบทุนวิจัย LTC และ Developmental Evaluation',activities:['วิจัยระบบการดูแลระยะยาว (LTC)','สนับสนุนทีม DE ผ่านนิด้า','พัฒนา Evidence Base ระบบสุขภาพชุมชน'],hosting:'รับรายงาน DE จาก นิด้า (ม.ค. 2569)',contact:'ผู้อำนวยการ สวรส. / ทีมวิจัย'},
+  {abbr:'สปสช.',full:'สำนักงานหลักประกันสุขภาพแห่งชาติ',role:'กองทุนหลักประกันสุขภาพท้องถิ่น | นโยบาย อบจ. | NGO ยาเสพติด',budget:'งบกองทุนสุขภาพท้องถิ่น อบจ. (ประกาศ ปี 68)',activities:['ปลดล็อก NGO ขึ้นทะเบียนหน่วยบำบัดยาเสพติด','ประกาศ อบจ. ปี 68 — กองทุน อบจ.','เชื่อมระบบข้อมูล สปสช. กับ Dashboard จังหวัด','สนับสนุนกองทุนตำบลสุขภาวะ'],hosting:'เจ้าภาพ ภสพ. ครั้งที่ 9',contact:'ผู้อำนวยการ สปสช. / ทีมกองทุน'},
+  {abbr:'พอช.',full:'สถาบันพัฒนาองค์กรชุมชน (องค์การมหาชน)',role:'ประสานชุมชนระดับพื้นที่ | Workshop เครือข่ายชุมชน',budget:'ภาคีสมทบทรัพยากรชุมชนและทีมปฏิบัติการ',activities:['จัด Workshop เครือข่ายชุมชน ต.ค. 2568','สนับสนุนสภาพลเมืองในจังหวัดนำร่อง','เชื่อมเครือข่ายชุมชนกับกลไกจังหวัด','พัฒนา Community Organizer ในพื้นที่'],hosting:'เจ้าภาพ ภสพ. ครั้งที่ 7',contact:'ผู้อำนวยการ พอช. / ทีมภาค'},
+  {abbr:'นิด้า',full:'สถาบันบัณฑิตพัฒนบริหารศาสตร์ (NIDA)',role:'ทีมประเมินเชิงพัฒนา (Developmental Evaluation — DE)',budget:'ได้รับการสนับสนุนจาก สวรส.',activities:['ประเมิน DE ใน 5 จังหวัดเฟส 1','ลงพื้นที่เยี่ยมและสังเกตการณ์','สังเคราะห์บทเรียนและข้อเสนอเชิงนโยบาย','รายงาน DE ต่อ สวรส. และ ภสพ.'],hosting:'ส่งรายงาน DE ให้ สวรส. ม.ค. 2569',contact:'ทีม DE นิด้า'},
+  {abbr:'บพท.',full:'หน่วยบริหารและจัดการทุนด้านการพัฒนาระดับพื้นที่',role:'สนับสนุนการวิจัยและนวัตกรรมระดับพื้นที่',budget:'ภาคีสมทบ',activities:['เจ้าภาพประชุม ภสพ. ครั้งที่ 8','สนับสนุนงานวิจัยพัฒนาพื้นที่','เชื่อมเครือข่ายนักวิจัยท้องถิ่น'],hosting:'เจ้าภาพ ภสพ. ครั้งที่ 8',contact:'ผู้อำนวยการ บพท.'},
+  {abbr:'สรพ.',full:'สถาบันรับรองคุณภาพสถานพยาบาล (องค์การมหาชน)',role:'วิชาการด้านคุณภาพระบบบริการสุขภาพ',budget:'ภาคีสมทบ',activities:['เจ้าภาพประชุม ภสพ. ครั้งที่ 10','สนับสนุนมาตรฐานคุณภาพระบบบริการ','เชื่อมกับกระบวนการ HA ระดับจังหวัด'],hosting:'เจ้าภาพ ภสพ. ครั้งที่ 10',contact:'ผู้อำนวยการ สรพ.'},
+  {abbr:'สพฉ.',full:'สถาบันการแพทย์ฉุกเฉินแห่งชาติ',role:'ระบบข้อมูลฉุกเฉิน | Share Plus Platform',budget:'ภาคีสมทบ + พัฒนา Share Plus Platform',activities:['เจ้าภาพประชุม ภสพ. ครั้งที่ 11','พัฒนา Share Plus Platform (ระบบข้อมูลกลาง)','สนับสนุนระบบข้อมูลฉุกเฉินระดับจังหวัด','เชื่อมข้อมูลสุขภาวะชุมชน'],hosting:'เจ้าภาพ ภสพ. ครั้งที่ 11',contact:'เลขาธิการ สพฉ. / ทีม Share Plus'},
 ];
 
 const TWBI_DIMS = ['สุขภาพ','เศรษฐกิจ-สังคม','สิ่งแวดล้อม','การศึกษา','การมีส่วนร่วม'];
@@ -436,7 +543,7 @@ function renderOverview(){
   <div class="card">
     <h3 class="font-semibold mb-3">ภาคียุทธศาสตร์ 9 หน่วยงาน</h3>
     <div class="grid md:grid-cols-3 gap-3">
-    ${AGENCIES.map(p=>`<div class="border rounded-lg p-3 hover:shadow transition"><div class="font-semibold text-blue-700 text-sm">${p.abbr}</div><div class="text-xs text-gray-500">${p.full}</div><div class="text-xs mt-1">${p.role}</div></div>`).join('')}
+    ${AGENCIES.map((p,i)=>`<div class="agency-card border rounded-lg p-3" onclick="openAgency(${i})"><div class="font-semibold text-blue-700 text-sm">${p.abbr}</div><div class="text-xs text-gray-500">${p.full}</div><div class="text-xs mt-1 text-gray-600">${p.role}</div><div class="text-xs text-blue-500 mt-1 font-semibold">ดูรายละเอียด &rarr;</div></div>`).join('')}
     </div>
   </div>`;
 }
@@ -661,29 +768,34 @@ function renderProvinces(){
       <tbody>${P2.provinces.map(p=>provRow(p)).join('')}</tbody></table>
   </div>`:''}
   <div class="card mb-6">
-    <h3 class="font-semibold mb-3">รายละเอียดจังหวัด</h3>
+    <h3 class="font-semibold mb-1">รายละเอียดจังหวัด</h3>
+    <p class="text-xs text-gray-400 mb-3">คลิกการ์ดเพื่อดูรายละเอียดเพิ่มเติม — วิสัยทัศน์ กลไก MOU ผลสำเร็จ ความท้าทาย TWBI</p>
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
     ${(currentPhase==='phase2'?[...P1.provinces,...P2.provinces]:(currentPhase==='phase1'?P1.provinces:getProvinces())).filter(p=>currentPhase==='all'||PROVINCE_DETAIL[p].phase===(currentPhase==='phase1'?1:currentPhase==='phase2'?2:PROVINCE_DETAIL[p].phase)).map(prov=>{
       const d=PROVINCE_DETAIL[prov]||{};
       const kpiKeys=['กลไก','MOU','ประเด็น','สื่อสาร'];
-      return `<div class="border rounded-lg p-4 hover:shadow-md transition ${d.phase===2?'border-t-4 border-t-green-500':'border-t-4 border-t-blue-500'}">
+      const kpiAvg=d.kpi?Math.round(Object.values(d.kpi).reduce((s,v)=>s+v,0)/4):0;
+      return `<div class="province-card border rounded-lg p-4 ${d.phase===2?'border-t-4 border-t-green-500':'border-t-4 border-t-blue-500'}" onclick="openProvince('${prov}')">
         <div class="flex justify-between items-center mb-2">
           <span class="font-semibold">${prov}</span>
           <span class="badge ${d.phase===1?'phase1':'phase2'}">เฟส ${d.phase} | ${d.zone}</span>
         </div>
         <div class="text-xs text-blue-600 italic mb-2">${d.vision||''}</div>
         <div class="flex flex-wrap gap-1 mb-2">${(d.issues||[]).map(i=>`<span class="text-xs bg-gray-100 rounded px-2 py-0.5">${i}</span>`).join('')}</div>
+        <div class="text-xs text-gray-500 mb-2"><strong>กลไก:</strong> ${(d.mechanism||'').substring(0,50)}${(d.mechanism||'').length>50?'...':''}</div>
         ${d.kpi?`<div class="grid grid-cols-4 gap-1 text-xs">
           ${kpiKeys.map(k=>`<div class="text-center"><div class="text-gray-400">${k}</div><div class="font-bold ${d.kpi[k]>=60?'text-green-600':d.kpi[k]>0?'text-yellow-600':'text-gray-400'}">${d.kpi[k]}%</div></div>`).join('')}
         </div>`:''}
+        <div class="text-xs text-blue-500 mt-2 text-right font-semibold">คลิกดูรายละเอียด &rarr;</div>
       </div>`;
     }).join('')}
     </div>
   </div>
   <div class="card">
-    <h3 class="font-semibold mb-3">ภาคียุทธศาสตร์ 9 หน่วยงาน</h3>
+    <h3 class="font-semibold mb-1">ภาคียุทธศาสตร์ 9 หน่วยงาน</h3>
+    <p class="text-xs text-gray-400 mb-3">คลิกเพื่อดูบทบาท กิจกรรม งบสมทบ และผู้ประสานงาน</p>
     <div class="grid md:grid-cols-3 gap-3">
-    ${AGENCIES.map(p=>`<div class="border rounded-lg p-3 hover:shadow transition"><div class="font-semibold text-blue-700 text-sm">${p.abbr}</div><div class="text-xs text-gray-500">${p.full}</div><div class="text-xs mt-1">${p.role}</div></div>`).join('')}
+    ${AGENCIES.map((p,i)=>`<div class="agency-card border rounded-lg p-3" onclick="openAgency(${i})"><div class="font-semibold text-blue-700 text-sm">${p.abbr}</div><div class="text-xs text-gray-500">${p.full}</div><div class="text-xs mt-1 text-gray-600">${p.role}</div><div class="text-xs text-blue-500 mt-1 font-semibold">ดูรายละเอียด &rarr;</div></div>`).join('')}
     </div>
   </div>`;
 }
@@ -731,6 +843,67 @@ function renderActivities(){
     </div>
   </div>`;
 }
+
+// ===================== DRILLDOWN =====================
+
+function openProvince(name){
+  const d=PROVINCE_DETAIL[name];if(!d)return;
+  const isP2=d.phase===2;
+  document.getElementById('drilldownHeader').style.background=isP2?'linear-gradient(135deg,#16a34a,#15803d)':'linear-gradient(135deg,#2563eb,#1e40af)';
+  document.getElementById('drilldownTitle').textContent=name;
+  document.getElementById('drilldownSubtitle').textContent=d.zone+' | '+(isP2?'เฟส 2 — จังหวัดใหม่':'เฟส 1 — จังหวัดนำร่อง');
+  const keys=['กลไก','MOU','ประเด็น','สื่อสาร'];
+  const labels=['กลไกการทำงาน','ข้อตกลงความร่วมมือ','ประเด็นขับเคลื่อน','ช่องทางสื่อสาร'];
+  const kpiHtml=keys.map((k,i)=>{
+    const p=d.kpi[k];const c=p>=80?'#16a34a':p>=50?'#ea580c':p>0?'#dc2626':'#d1d5db';
+    return `<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:3px"><span style="color:#64748b">${labels[i]}</span><span style="font-weight:700;color:${c}">${p>0?p+'%':'—'}</span></div><div class="drilldown-kpi-bar-wrap"><div class="drilldown-kpi-bar-fill" style="width:${p}%;background:${c}"></div></div></div>`;
+  }).join('');
+  const issHtml=d.issues.map(x=>`<span class="drilldown-chip">${x}</span>`).join('');
+  const hilHtml=(d.highlights||[]).map(x=>`<div class="drilldown-highlight">${x}</div>`).join('');
+  const twbi=TWBI.find(t=>t.province===name);
+  const twbiHtml=twbi&&twbi.overall?`<div class="drilldown-section"><div class="drilldown-section-title">TWBI Score</div><div style="display:flex;gap:16px;flex-wrap:wrap;align-items:center"><div style="font-size:2rem;font-weight:800;color:#2563eb">${twbi.overall.toFixed(2)}</div><div style="font-size:.85rem;color:#64748b">อันดับ ${twbi.rank}/77</div></div><div style="display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:10px;text-align:center;font-size:11px">${['สุขภาพ','ศก.-สังคม','สิ่งแวดล้อม','การศึกษา','มีส่วนร่วม'].map((dim,i)=>`<div><div style="color:${DIM_COLORS[i]};font-weight:700">${[twbi.health,twbi.socEcon,twbi.env,twbi.edu,twbi.civic][i].toFixed(1)}</div><div style="color:#94a3b8">${dim}</div></div>`).join('')}</div></div>`:'';
+  document.getElementById('drilldownBody').innerHTML=`
+    <div class="drilldown-section"><div class="drilldown-section-title">วิสัยทัศน์</div><div style="font-size:14px;font-style:italic;color:#1e293b;line-height:1.6">${d.vision}</div></div>
+    <div class="drilldown-section"><div class="drilldown-section-title">ประเด็นขับเคลื่อน</div><div>${issHtml}</div></div>
+    <div class="drilldown-section"><div class="drilldown-section-title">กลไกและกระบวนการหลัก</div><div style="font-size:13px;color:#1e293b;line-height:1.6">${d.mechanism}</div></div>
+    <div class="drilldown-section"><div class="drilldown-section-title">ข้อตกลงความร่วมมือ (MOU)</div><div style="font-size:13px;color:#1e293b">${d.mou}</div></div>
+    <div class="drilldown-section"><div class="drilldown-section-title">ผลสำเร็จเด่น</div>${hilHtml}</div>
+    ${twbiHtml}
+    <div class="drilldown-section"><div class="drilldown-section-title">ความก้าวหน้าตัวชี้วัด</div>${kpiHtml}</div>
+    <div class="drilldown-section"><div class="drilldown-section-title">ความท้าทาย</div><div style="font-size:13px;color:#dc2626;line-height:1.6">${d.challenge}</div></div>
+  `;
+  openPanel();
+}
+
+function openAgency(idx){
+  const d=AGENCIES[idx];if(!d)return;
+  document.getElementById('drilldownHeader').style.background='linear-gradient(135deg,#7c3aed,#6d28d9)';
+  document.getElementById('drilldownTitle').textContent=d.abbr;
+  document.getElementById('drilldownSubtitle').textContent=d.full;
+  const actHtml=(d.activities||[]).map(a=>`<div class="drilldown-highlight">${a}</div>`).join('');
+  document.getElementById('drilldownBody').innerHTML=`
+    <div class="drilldown-section"><div class="drilldown-section-title">บทบาทหลักในโครงการ</div><div style="font-size:13px;color:#1e293b;line-height:1.6">${d.role}</div></div>
+    <div class="drilldown-section"><div class="drilldown-section-title">งบประมาณ / ทรัพยากรสมทบ</div><div style="font-size:13px;color:#1e293b">${d.budget||'ภาคีสมทบ'}</div></div>
+    <div class="drilldown-section"><div class="drilldown-section-title">กิจกรรมสำคัญ</div>${actHtml}</div>
+    <div class="drilldown-section"><div class="drilldown-section-title">การเป็นเจ้าภาพ / ความรับผิดชอบพิเศษ</div><div style="font-size:13px;color:#16a34a;font-weight:600">${d.hosting||'-'}</div></div>
+    <div class="drilldown-section"><div class="drilldown-section-title">ผู้ประสานงาน</div><div style="font-size:13px;color:#1e293b">${d.contact||'-'}</div></div>
+  `;
+  openPanel();
+}
+
+function openPanel(){
+  document.getElementById('drilldownOverlay').classList.add('open');
+  document.getElementById('drilldownPanel').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeDrilldown(){
+  document.getElementById('drilldownOverlay').classList.remove('open');
+  document.getElementById('drilldownPanel').classList.remove('open');
+  document.body.style.overflow='';
+}
+
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeDrilldown()});
 
 // ===================== INIT =====================
 document.getElementById('currentDate').textContent=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
