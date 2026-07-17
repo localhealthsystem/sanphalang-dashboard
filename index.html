@@ -3,39 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Dashboard สานพลังพื้นที่เข้มแข็ง ระยะที่ 2</title>
+<title>Dashboard สานพลังพื้นที่เข้มแข็ง — ภาพรวมทั้งโครงการ</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700;800&display=swap');
 body{font-family:'Sarabun',sans-serif}
 .tab-btn{transition:all .2s}.tab-btn.active{border-bottom:3px solid #2563eb;color:#2563eb;font-weight:600}
 .card{background:#fff;border-radius:12px;box-shadow:0 1px 3px rgba(0,0,0,.08);padding:1.25rem}
 .badge{display:inline-block;padding:2px 10px;border-radius:9999px;font-size:.75rem;font-weight:500}
-.phase1{background:#dbeafe;color:#1e40af}.phase2{background:#fef3c7;color:#92400e}
+.phase1{background:#dbeafe;color:#1e40af}.phase2{background:#dcfce7;color:#166534}.phaseAll{background:#fef3c7;color:#92400e}
 table{border-collapse:collapse;width:100%}th,td{padding:8px 10px;text-align:left;border-bottom:1px solid #e5e7eb;font-size:.85rem}
-th{background:#f9fafb;font-weight:600;position:sticky;top:0}
-tr:hover{background:#f0f9ff}
+th{background:#f9fafb;font-weight:600;position:sticky;top:0}tr:hover{background:#f0f9ff}
 .progress-bar{height:8px;border-radius:4px;background:#e5e7eb;overflow:hidden}
 .progress-fill{height:100%;border-radius:4px;transition:width .5s}
 canvas{max-height:320px}
 .status-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px}
 .legend-item{display:flex;align-items:center;gap:6px;font-size:.8rem}
 .scroll-table{max-height:400px;overflow-y:auto}
+.phase-toggle{display:flex;gap:4px;background:#f1f5f9;border-radius:10px;padding:3px}
+.phase-toggle button{padding:6px 16px;border-radius:8px;font-size:.85rem;font-weight:600;border:none;cursor:pointer;transition:all .2s;background:transparent;color:#64748b}
+.phase-toggle button.active{background:#fff;color:#1e40af;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.phase-toggle button:hover:not(.active){background:rgba(255,255,255,.5)}
 </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
 
 <!-- HEADER -->
 <header class="bg-gradient-to-r from-blue-700 to-blue-900 text-white px-6 py-4 shadow-lg">
-  <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-2">
+  <div class="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
     <div>
-      <h1 class="text-xl font-bold tracking-tight">โครงการสานพลังพื้นที่เข้มแข็ง <span class="text-blue-200">ระยะที่ 2</span></h1>
-      <p class="text-blue-200 text-sm mt-0.5">Area Strengthening Alliance (ASA) Phase 2 &bull; สำนักงานคณะกรรมการสุขภาพแห่งชาติ (สช.)</p>
+      <h1 class="text-xl font-bold tracking-tight">โครงการสานพลังพื้นที่เข้มแข็ง <span class="text-blue-200">(ภาคีอาสา)</span></h1>
+      <p class="text-blue-200 text-sm mt-0.5">Area Strengthening Alliance (ASA) &bull; สำนักงานคณะกรรมการสุขภาพแห่งชาติ (สช.) &bull; สนับสนุนโดย สสส.</p>
     </div>
-    <div class="text-right text-sm">
-      <div class="text-blue-200">ข้อมูล ณ วันที่</div>
-      <div class="font-semibold" id="currentDate"></div>
+    <div class="flex items-center gap-4">
+      <div class="phase-toggle" id="phaseToggle">
+        <button class="active" onclick="setPhase('all')">รวมทั้งโครงการ</button>
+        <button onclick="setPhase('phase1')">เฟส 1</button>
+        <button onclick="setPhase('phase2')">เฟส 2</button>
+      </div>
+      <div class="text-right text-sm">
+        <div class="text-blue-200">ข้อมูล ณ</div>
+        <div class="font-semibold" id="currentDate"></div>
+      </div>
     </div>
   </div>
 </header>
@@ -57,77 +67,124 @@ canvas{max-height:320px}
 
 <!-- FOOTER -->
 <footer class="text-center text-xs text-gray-400 py-4 border-t mt-8">
-  โครงการสานพลังขับเคลื่อนจังหวัดเข้มแข็ง (ภาคีอาสา) ระยะที่ 2 &bull; สนับสนุนโดย สสส. &bull; ข้อมูลจากเอกสารโครงการที่เสนอ สสส.
+  โครงการสานพลังขับเคลื่อนจังหวัดเข้มแข็ง (ภาคีอาสา) &bull; สนับสนุนโดย สสส. &bull; ข้อมูลจริงจากเอกสารโครงการที่เสนอ สสส.
 </footer>
 
 <script>
-// ===================== REAL DATA =====================
+// ===================== REAL DATA — PHASE 1 =====================
 
-const PROJECT = {
-  name: 'สานพลังพื้นที่เข้มแข็ง ระยะที่ 2 (ASA Phase 2)',
-  org: 'สำนักงานคณะกรรมการสุขภาพแห่งชาติ (สช.)',
+const P1 = {
+  name: 'ระยะที่ 1 (เสริมสร้างจังหวัดเข้มแข็ง)',
+  duration: 24,
+  startDate: new Date(2025, 5, 1),
+  endDate: new Date(2027, 4, 31),
+  provinces: ['เชียงราย','นครสวรรค์','ขอนแก่น','ตราด','พัทลุง'],
+  budget: {
+    grandTotal: 19364672,
+    sss: 19364672,
+    partner: 0,
+    section1: 13490065,
+    section2: 4525600,
+    section3: 1349007,
+    strategies: {
+      s1: {name:'สร้างระบบนิเวศความร่วมมือและกลไกขับเคลื่อน',total:8262000},
+      s2: {name:'ขับเคลื่อนประเด็นร่วมในพื้นที่',total:4028065},
+      s3: {name:'พัฒนาระบบข้อมูลและสื่อสารสาธารณะ',total:1200000},
+    }
+  },
+  installments: [
+    {no:1,period:'มิ.ย.68 – พ.ย.68',months:6,amount:6500000},
+    {no:2,period:'ธ.ค.68 – พ.ค.69',months:6,amount:5200000},
+    {no:3,period:'มิ.ย.69 – พ.ย.69',months:6,amount:4100000},
+    {no:4,period:'ธ.ค.69 – เม.ย.70',months:5,amount:3215665},
+    {no:5,period:'พ.ค.70',months:1,amount:349007},
+  ],
+};
+
+const P1_ACTIVITIES = [
+  {id:'P1-1.1',name:'ประชุม ภสพ. (24 ครั้ง)',budget:762000,source:'สสส.',freq:'24 ครั้ง',level:'กลาง',strategy:1,status:'ดำเนินการแล้ว',phase:1},
+  {id:'P1-1.2',name:'สร้างกลไกขับเคลื่อนระดับจังหวัด 5 จว.',budget:1500000,source:'สสส.',freq:'5 จังหวัด',level:'จังหวัด',strategy:1,status:'ดำเนินการแล้ว',phase:1},
+  {id:'P1-1.3',name:'Workshop เจ้าหน้าที่ เครือข่าย',budget:800000,source:'สสส.',freq:'4 ครั้ง',level:'กลาง',strategy:1,status:'ดำเนินการแล้ว',phase:1},
+  {id:'P1-1.4',name:'เยี่ยมเสริมพลัง 5 จังหวัด',budget:500000,source:'สสส.',freq:'10 ครั้ง',level:'จังหวัด',strategy:1,status:'ดำเนินการแล้ว',phase:1},
+  {id:'P1-1.5',name:'สภาพลเมือง / เวทีภาคีระดับจังหวัด',budget:1200000,source:'สสส.',freq:'5 จังหวัด',level:'จังหวัด',strategy:1,status:'ดำเนินการแล้ว',phase:1},
+  {id:'P1-1.6',name:'ทีมผู้แทนภาคีประสานจังหวัด (5 จว.)',budget:500000,source:'สสส.',freq:'5 จังหวัด',level:'จังหวัด',strategy:1,status:'ดำเนินการแล้ว',phase:1},
+  {id:'P1-1.7',name:'พัฒนาประเด็นร่วม/แผนร่วม/ธรรมนูญ (5 จว.)',budget:2000000,source:'สสส.',freq:'5 จังหวัด',level:'จังหวัด',strategy:1,status:'กำลังดำเนินการ',phase:1},
+  {id:'P1-1.8',name:'ขับเคลื่อนประเด็นร่วม สร้างพื้นที่รูปธรรม',budget:2500000,source:'สสส.',freq:'5 จังหวัด',level:'จังหวัด',strategy:2,status:'กำลังดำเนินการ',phase:1},
+  {id:'P1-1.9',name:'สนับสนุนกลไกชุมชน/ตำบล',budget:528065,source:'สสส.',freq:'5 จังหวัด',level:'จังหวัด',strategy:2,status:'กำลังดำเนินการ',phase:1},
+  {id:'P1-1.10',name:'ถอดบทเรียน 5 จังหวัด',budget:1000000,source:'สสส.',freq:'5 จังหวัด',level:'กลาง',strategy:2,status:'กำลังดำเนินการ',phase:1},
+  {id:'P1-3.1',name:'พัฒนาระบบข้อมูลการบริหาร',budget:500000,source:'สสส.',freq:'-',level:'กลาง',strategy:3,status:'ดำเนินการแล้ว',phase:1},
+  {id:'P1-3.2',name:'Dashboard สุขภาวะองค์รวม',budget:200000,source:'สสส.',freq:'-',level:'กลาง',strategy:3,status:'กำลังดำเนินการ',phase:1},
+  {id:'P1-3.6',name:'สื่อสารสาธารณะ ผลิตสื่อ',budget:500000,source:'สสส.',freq:'-',level:'กลาง',strategy:3,status:'กำลังดำเนินการ',phase:1},
+];
+
+// ===================== REAL DATA — PHASE 2 =====================
+
+const P2 = {
+  name: 'ระยะที่ 2 (สานพลังพื้นที่เข้มแข็ง)',
   duration: 24,
   startDate: new Date(2026, 4, 1),
   endDate: new Date(2028, 3, 30),
-  phase1Provinces: ['เชียงราย','นครสวรรค์','ตราด','ขอนแก่น','พัทลุง'],
-  phase2Provinces: ['พิษณุโลก','ปทุมธานี','สุพรรณบุรี','บึงกาฬ','ชัยภูมิ','อุบลราชธานี','กระบี่','กรุงเทพมหานคร'],
-};
-
-const BUDGET = {
-  grandTotal: 23069100,
-  sss: 19811100,
-  partner: 3258000,
-  section1: 17802120,
-  section2: 4103450,
-  section3: 1163530,
-  strategy1: {name:'สร้างระบบนิเวศความร่วมมือและกลไกขับเคลื่อนหลายระดับ',total:12128120},
-  strategy2: {name:'ขับเคลื่อนวาระเป้าหมายร่วมในพื้นที่อย่างมุ่งเป้า',total:3528500},
-  strategy3: {name:'พัฒนาระบบข้อมูล บูรณาการทรัพยากร สื่อสารสาธารณะ',total:2145500},
+  provinces: ['พิษณุโลก','ปทุมธานี','สุพรรณบุรี','บึงกาฬ','ชัยภูมิ','อุบลราชธานี','กระบี่','กรุงเทพมหานคร'],
+  budget: {
+    grandTotal: 23069100,
+    sss: 19811100,
+    partner: 3258000,
+    section1: 17802120,
+    section2: 4103450,
+    section3: 1163530,
+    strategies: {
+      s1: {name:'สร้างระบบนิเวศความร่วมมือและกลไกขับเคลื่อนหลายระดับ',total:12128120},
+      s2: {name:'ขับเคลื่อนวาระเป้าหมายร่วมในพื้นที่อย่างมุ่งเป้า',total:3528500},
+      s3: {name:'พัฒนาระบบข้อมูล บูรณาการทรัพยากร สื่อสารสาธารณะ',total:2145500},
+    }
+  },
   installments: [
-    {no:1, period:'พ.ค.69 – ต.ค.69', months:6, amount:8906427, startM:new Date(2026,4,1), endM:new Date(2026,9,31)},
-    {no:2, period:'พ.ย.69 – เม.ย.70', months:6, amount:5491657, startM:new Date(2026,10,1), endM:new Date(2027,3,30)},
-    {no:3, period:'พ.ค.70 – ต.ค.70', months:6, amount:5023107, startM:new Date(2027,4,1), endM:new Date(2027,9,31)},
-    {no:4, period:'พ.ย.70 – มี.ค.71', months:5, amount:3479493, startM:new Date(2027,10,1), endM:new Date(2028,2,31)},
-    {no:5, period:'เม.ย.71', months:1, amount:275537, startM:new Date(2028,3,1), endM:new Date(2028,3,30)},
+    {no:1,period:'พ.ค.69 – ต.ค.69',months:6,amount:8906427,startM:new Date(2026,4,1),endM:new Date(2026,9,31)},
+    {no:2,period:'พ.ย.69 – เม.ย.70',months:6,amount:5491657,startM:new Date(2026,10,1),endM:new Date(2027,3,30)},
+    {no:3,period:'พ.ค.70 – ต.ค.70',months:6,amount:5023107,startM:new Date(2027,4,1),endM:new Date(2027,9,31)},
+    {no:4,period:'พ.ย.70 – มี.ค.71',months:5,amount:3479493,startM:new Date(2027,10,1),endM:new Date(2028,2,31)},
+    {no:5,period:'เม.ย.71',months:1,amount:275537,startM:new Date(2028,3,1),endM:new Date(2028,3,30)},
   ],
   management: [
-    {item:'ผู้จัดการโครงการ (part-time)', rate:'74,900 บ./เดือน x 6 วัน', amount:367200},
-    {item:'นักวิชาการ 1 (full-time)', rate:'40,000 บ./เดือน x 18 เดือน', amount:720000},
-    {item:'นักวิชาการ 2 (full-time)', rate:'40,000 บ./เดือน x 18 เดือน', amount:720000},
-    {item:'นักวิชาการ 3 (full-time)', rate:'35,000 บ./เดือน x 18 เดือน', amount:630000},
-    {item:'เจ้าหน้าที่บริหารจัดการ (full-time)', rate:'25,000 บ./เดือน x 18 เดือน', amount:450000},
-    {item:'ผู้ประสานงาน (full-time)', rate:'20,000 บ./เดือน x 18 เดือน', amount:360000},
-    {item:'การเงินและบัญชี (full-time)', rate:'25,000 บ./เดือน x 18 เดือน', amount:450000},
-    {item:'ค่าบริหารสำนักงาน', rate:'ถ่ายเอกสาร วัสดุ ไปรษณีย์ ตรวจบัญชี', amount:406250},
+    {item:'ผู้จัดการโครงการ (part-time)',rate:'74,900 บ./เดือน x 6 วัน',amount:367200},
+    {item:'นักวิชาการ 1 (full-time)',rate:'40,000 บ./เดือน x 18 เดือน',amount:720000},
+    {item:'นักวิชาการ 2 (full-time)',rate:'40,000 บ./เดือน x 18 เดือน',amount:720000},
+    {item:'นักวิชาการ 3 (full-time)',rate:'35,000 บ./เดือน x 18 เดือน',amount:630000},
+    {item:'เจ้าหน้าที่บริหารจัดการ (full-time)',rate:'25,000 บ./เดือน x 18 เดือน',amount:450000},
+    {item:'ผู้ประสานงาน (full-time)',rate:'20,000 บ./เดือน x 18 เดือน',amount:360000},
+    {item:'การเงินและบัญชี (full-time)',rate:'25,000 บ./เดือน x 18 เดือน',amount:450000},
+    {item:'ค่าบริหารสำนักงาน',rate:'ถ่ายเอกสาร วัสดุ ไปรษณีย์ ตรวจบัญชี',amount:406250},
   ],
 };
 
-const ACTIVITIES = [
-  {id:'1.1.1',name:'ประชุม ภสพ. hybrid รายเดือน',budget:350100,source:'สสส.',freq:'6 ครั้ง (เพิ่มเติม)',level:'กลาง',strategy:1,installment:1,status:'กำลังดำเนินการ'},
-  {id:'1.1.2',name:'ประชุมคณะทำงาน ภสพ. hybrid',budget:122820,source:'สสส.',freq:'6 ครั้ง',level:'กลาง',strategy:1,installment:1,status:'กำลังดำเนินการ'},
-  {id:'1.1.3',name:'ประชุมทีมบริหารโครงการ hybrid',budget:16200,source:'สสส.',freq:'24 ครั้ง',level:'กลาง',strategy:1,installment:1,status:'กำลังดำเนินการ'},
-  {id:'1.1.4',name:'ประชุมปฏิบัติการร่วมภาคียุทธศาสตร์กับแกนนำ 13 จว. (170 คน)',budget:790500,source:'สสส.',freq:'1 ครั้ง',level:'กลาง',strategy:1,installment:1,status:'วางแผน'},
-  {id:'1.1.5',name:'ประชุมเปิดตัว ภารกิจสานพลังจังหวัดใหม่ 8 จว.',budget:0,source:'ภาคีเบิกจากต้นสังกัด',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:1,status:'วางแผน'},
-  {id:'1.1.6',name:'เยี่ยมเสริมพลังพื้นที่ 13 จังหวัด',budget:448500,source:'ภาคี',freq:'26 ครั้ง',level:'จังหวัด',strategy:1,installment:2,status:'ยังไม่เริ่ม'},
-  {id:'1.2.1',name:'สนับสนุนทีมประสานจังหวัดใหม่ 8 จว.',budget:800000,source:'สสส.',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:1,status:'กำลังดำเนินการ'},
-  {id:'1.2.2',name:'พัฒนาวาระเป้าหมายร่วม แผนขับเคลื่อน ข้อตกลงร่วม 8 จว.',budget:3200000,source:'สสส.',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:1,status:'วางแผน'},
-  {id:'1.2.3',name:'ขับเคลื่อนกลไกและประเด็นในพื้นที่ตำบล/ชุมชน 8 จว.',budget:3200000,source:'สสส.',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:2,status:'ยังไม่เริ่ม'},
-  {id:'1.2.4',name:'สื่อสารและสร้างการรับรู้ 8 จว.',budget:1600000,source:'สสส.',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:1,status:'วางแผน'},
-  {id:'1.2.5',name:'ถอดบทเรียนและสรุปบทเรียนระดับจังหวัด 8 จว.',budget:1600000,source:'สสส.',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:1,status:'ยังไม่เริ่ม'},
-  {id:'2.1.1',name:'วิเคราะห์สถานการณ์และออกแบบ Target Agenda (105 คน)',budget:498750,source:'ภาคี',freq:'1 ครั้ง',level:'กลาง',strategy:2,installment:1,status:'วางแผน'},
-  {id:'2.1.2',name:'พัฒนาศักยภาพ ภาวะผู้นำ นวัตกรรมสังคม (105 คน)',budget:510750,source:'ภาคี',freq:'1 ครั้ง',level:'กลาง',strategy:2,installment:1,status:'วางแผน'},
-  {id:'2.2.1',name:'ศึกษาดูงานและแลกเปลี่ยนระหว่างจังหวัด 4 ภาค',budget:1300000,source:'ภาคี',freq:'4 ครั้ง',level:'กลาง',strategy:2,installment:2,status:'ยังไม่เริ่ม'},
-  {id:'2.2.2',name:'เวทีแลกเปลี่ยนเรียนรู้ สรุปบทเรียน 13 จว. (170 คน)',budget:819000,source:'สสส.',freq:'1 ครั้ง',level:'กลาง',strategy:2,installment:3,status:'ยังไม่เริ่ม'},
-  {id:'2.2.3',name:'สังเคราะห์องค์ความรู้ คู่มือ ข้อเสนอเชิงนโยบาย',budget:400000,source:'สสส.',freq:'-',level:'กลาง',strategy:2,installment:3,status:'ยังไม่เริ่ม'},
-  {id:'3.1.1',name:'พัฒนาระบบข้อมูลเพื่อบริหาร ติดตาม ตัดสินใจ',budget:200000,source:'ภาคี',freq:'-',level:'กลาง',strategy:3,installment:1,status:'กำลังดำเนินการ'},
-  {id:'3.1.2',name:'พัฒนา Dashboard ดัชนีความอยู่ดีมีสุข (TWBI)',budget:200000,source:'ภาคี',freq:'-',level:'กลาง',strategy:3,installment:1,status:'กำลังดำเนินการ'},
-  {id:'3.1.3',name:'ชุมชนการเรียนรู้การใช้ข้อมูลสุขภาพ (COP Data Driven)',budget:200000,source:'สสส.100K + ภาคี100K',freq:'-',level:'กลาง',strategy:3,installment:2,status:'ยังไม่เริ่ม'},
-  {id:'3.1.4',name:'อบรมการใช้งานระบบข้อมูลให้พื้นที่ (80 คน)',budget:362500,source:'สสส.',freq:'1 ครั้ง',level:'กลาง',strategy:3,installment:2,status:'ยังไม่เริ่ม'},
-  {id:'3.2.1',name:'ทะเบียนทรัพยากรหนุนร่วม / ข้อตกลงร่วมทุน',budget:0,source:'รวมในงบ 1.2',freq:'-',level:'จังหวัด',strategy:3,installment:2,status:'ยังไม่เริ่ม'},
-  {id:'3.2.2',name:'พัฒนาศักยภาพถอดบทเรียน สื่อสารสาธารณะ (62 คน)',budget:262500,source:'สสส.',freq:'1 ครั้ง',level:'กลาง',strategy:3,installment:2,status:'ยังไม่เริ่ม'},
-  {id:'3.2.3',name:'เวทีสาธารณะสรุปบทเรียนระดับประเทศ hybrid (300 คน)',budget:899500,source:'สสส.',freq:'1 ครั้ง',level:'กลาง',strategy:3,installment:4,status:'ยังไม่เริ่ม'},
-  {id:'3.2.4',name:'กลั่นกรองข้อเสนอโครงการ',budget:21000,source:'สสส.',freq:'-',level:'กลาง',strategy:3,installment:1,status:'ดำเนินการแล้ว'},
+const P2_ACTIVITIES = [
+  {id:'1.1.1',name:'ประชุม ภสพ. hybrid รายเดือน',budget:350100,source:'สสส.',freq:'6 ครั้ง (เพิ่มเติม)',level:'กลาง',strategy:1,installment:1,status:'กำลังดำเนินการ',phase:2},
+  {id:'1.1.2',name:'ประชุมคณะทำงาน ภสพ. hybrid',budget:122820,source:'สสส.',freq:'6 ครั้ง',level:'กลาง',strategy:1,installment:1,status:'กำลังดำเนินการ',phase:2},
+  {id:'1.1.3',name:'ประชุมทีมบริหารโครงการ hybrid',budget:16200,source:'สสส.',freq:'24 ครั้ง',level:'กลาง',strategy:1,installment:1,status:'กำลังดำเนินการ',phase:2},
+  {id:'1.1.4',name:'ประชุมปฏิบัติการร่วมภาคียุทธศาสตร์กับแกนนำ 13 จว. (170 คน)',budget:790500,source:'สสส.',freq:'1 ครั้ง',level:'กลาง',strategy:1,installment:1,status:'วางแผน',phase:2},
+  {id:'1.1.5',name:'ประชุมเปิดตัว ภารกิจสานพลังจังหวัดใหม่ 8 จว.',budget:0,source:'ภาคีเบิกจากต้นสังกัด',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:1,status:'วางแผน',phase:2},
+  {id:'1.1.6',name:'เยี่ยมเสริมพลังพื้นที่ 13 จังหวัด',budget:448500,source:'ภาคี',freq:'26 ครั้ง',level:'จังหวัด',strategy:1,installment:2,status:'ยังไม่เริ่ม',phase:2},
+  {id:'1.2.1',name:'สนับสนุนทีมประสานจังหวัดใหม่ 8 จว.',budget:800000,source:'สสส.',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:1,status:'กำลังดำเนินการ',phase:2},
+  {id:'1.2.2',name:'พัฒนาวาระเป้าหมายร่วม แผนขับเคลื่อน ข้อตกลงร่วม 8 จว.',budget:3200000,source:'สสส.',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:1,status:'วางแผน',phase:2},
+  {id:'1.2.3',name:'ขับเคลื่อนกลไกและประเด็นในพื้นที่ตำบล/ชุมชน 8 จว.',budget:3200000,source:'สสส.',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:2,status:'ยังไม่เริ่ม',phase:2},
+  {id:'1.2.4',name:'สื่อสารและสร้างการรับรู้ 8 จว.',budget:1600000,source:'สสส.',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:1,status:'วางแผน',phase:2},
+  {id:'1.2.5',name:'ถอดบทเรียนและสรุปบทเรียนระดับจังหวัด 8 จว.',budget:1600000,source:'สสส.',freq:'8 จังหวัด',level:'จังหวัด',strategy:1,installment:1,status:'ยังไม่เริ่ม',phase:2},
+  {id:'2.1.1',name:'วิเคราะห์สถานการณ์และออกแบบ Target Agenda (105 คน)',budget:498750,source:'ภาคี',freq:'1 ครั้ง',level:'กลาง',strategy:2,installment:1,status:'วางแผน',phase:2},
+  {id:'2.1.2',name:'พัฒนาศักยภาพ ภาวะผู้นำ นวัตกรรมสังคม (105 คน)',budget:510750,source:'ภาคี',freq:'1 ครั้ง',level:'กลาง',strategy:2,installment:1,status:'วางแผน',phase:2},
+  {id:'2.2.1',name:'ศึกษาดูงานและแลกเปลี่ยนระหว่างจังหวัด 4 ภาค',budget:1300000,source:'ภาคี',freq:'4 ครั้ง',level:'กลาง',strategy:2,installment:2,status:'ยังไม่เริ่ม',phase:2},
+  {id:'2.2.2',name:'เวทีแลกเปลี่ยนเรียนรู้ สรุปบทเรียน 13 จว. (170 คน)',budget:819000,source:'สสส.',freq:'1 ครั้ง',level:'กลาง',strategy:2,installment:3,status:'ยังไม่เริ่ม',phase:2},
+  {id:'2.2.3',name:'สังเคราะห์องค์ความรู้ คู่มือ ข้อเสนอเชิงนโยบาย',budget:400000,source:'สสส.',freq:'-',level:'กลาง',strategy:2,installment:3,status:'ยังไม่เริ่ม',phase:2},
+  {id:'3.1.1',name:'พัฒนาระบบข้อมูลเพื่อบริหาร ติดตาม ตัดสินใจ',budget:200000,source:'ภาคี',freq:'-',level:'กลาง',strategy:3,installment:1,status:'กำลังดำเนินการ',phase:2},
+  {id:'3.1.2',name:'พัฒนา Dashboard ดัชนีความอยู่ดีมีสุข (TWBI)',budget:200000,source:'ภาคี',freq:'-',level:'กลาง',strategy:3,installment:1,status:'กำลังดำเนินการ',phase:2},
+  {id:'3.1.3',name:'ชุมชนการเรียนรู้การใช้ข้อมูลสุขภาพ (COP Data Driven)',budget:200000,source:'สสส.100K + ภาคี100K',freq:'-',level:'กลาง',strategy:3,installment:2,status:'ยังไม่เริ่ม',phase:2},
+  {id:'3.1.4',name:'อบรมการใช้งานระบบข้อมูลให้พื้นที่ (80 คน)',budget:362500,source:'สสส.',freq:'1 ครั้ง',level:'กลาง',strategy:3,installment:2,status:'ยังไม่เริ่ม',phase:2},
+  {id:'3.2.1',name:'ทะเบียนทรัพยากรหนุนร่วม / ข้อตกลงร่วมทุน',budget:0,source:'รวมในงบ 1.2',freq:'-',level:'จังหวัด',strategy:3,installment:2,status:'ยังไม่เริ่ม',phase:2},
+  {id:'3.2.2',name:'พัฒนาศักยภาพถอดบทเรียน สื่อสารสาธารณะ (62 คน)',budget:262500,source:'สสส.',freq:'1 ครั้ง',level:'กลาง',strategy:3,installment:2,status:'ยังไม่เริ่ม',phase:2},
+  {id:'3.2.3',name:'เวทีสาธารณะสรุปบทเรียนระดับประเทศ hybrid (300 คน)',budget:899500,source:'สสส.',freq:'1 ครั้ง',level:'กลาง',strategy:3,installment:4,status:'ยังไม่เริ่ม',phase:2},
+  {id:'3.2.4',name:'กลั่นกรองข้อเสนอโครงการ',budget:21000,source:'สสส.',freq:'-',level:'กลาง',strategy:3,installment:1,status:'ดำเนินการแล้ว',phase:2},
 ];
+
+const ALL_ACTIVITIES = [...P1_ACTIVITIES, ...P2_ACTIVITIES];
 
 const COINVEST_BY_ACTIVITY = [
   {id:'1.1.6',name:'เยี่ยมเสริมพลังพื้นที่ 13 จังหวัด',amount:448500},
@@ -186,34 +243,97 @@ const PARTNERSHIP_RUBRIC = [
   {dim:'ความเป็นเจ้าของพื้นที่ (Area Ownership)',maxScore:4},
 ];
 
+const PROVINCE_DETAIL = {
+  'เชียงราย':{phase:1,zone:'เขต 1',vision:'"เชียงรายล้านนาแห่งความสุข"',issues:['มลพิษฝุ่น PM 2.5','คุณภาพน้ำกก-โขง'],highlights:['ถอดบทเรียนเครือข่ายน้ำกก-โขง','ลงนาม MOU ระดับจังหวัด'],kpi:{กลไก:100,MOU:100,ประเด็น:60,สื่อสาร:20}},
+  'นครสวรรค์':{phase:1,zone:'เขต 3',vision:'"นครสวรรค์ สวรรค์ของทุกคน"',issues:['สังคมสูงวัย','สิทธิชุมชน'],highlights:['สภาพลเมืองขับเคลื่อนคุณภาพชีวิตผู้สูงอายุ','เวทีประชาชน 5 อำเภอ'],kpi:{กลไก:100,MOU:100,ประเด็น:60,สื่อสาร:20}},
+  'ขอนแก่น':{phase:1,zone:'เขต 7',vision:'"ขอนแก่นอยู่ดีมีแฮง ฮักแพงแบ่งปัน"',issues:['สุขภาวะชุมชนเมือง','Sawathi Living Model'],highlights:['บ้านฝางโมเดล ต้นแบบ LTC','MOU 5 เทศบาล'],kpi:{กลไก:100,MOU:100,ประเด็น:80,สื่อสาร:30}},
+  'ตราด':{phase:1,zone:'เขต 6',vision:'"ปัญจปิฎก 5 ดี วิถีตราด"',issues:['เด็กและเยาวชน','NCDs'],highlights:['ธรรมนูญสุขภาพ "5 ดี" ครอบคลุม 5 มิติ','NCDs ขยายสู่ 8 อปท.'],kpi:{กลไก:100,MOU:100,ประเด็น:70,สื่อสาร:20}},
+  'พัทลุง':{phase:1,zone:'เขต 12',vision:'"พัทลุงมหานครแห่งความสุข"',issues:['ระบบสุขภาพชุมชน','ทุนทางสังคม'],highlights:['สภาเมืองลุง 50+ คน','พัฒนาระบบข้อมูลกลาง'],kpi:{กลไก:100,MOU:100,ประเด็น:50,สื่อสาร:20}},
+  'พิษณุโลก':{phase:2,zone:'เขต 2',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'ปทุมธานี':{phase:2,zone:'เขต 4',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'สุพรรณบุรี':{phase:2,zone:'เขต 5',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'บึงกาฬ':{phase:2,zone:'เขต 8',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'ชัยภูมิ':{phase:2,zone:'เขต 9',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'อุบลราชธานี':{phase:2,zone:'เขต 10',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'กระบี่':{phase:2,zone:'เขต 11',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+  'กรุงเทพมหานคร':{phase:2,zone:'เขต 13',vision:'จังหวัดใหม่เฟส 2',issues:['กำหนด Target Agenda'],highlights:['เริ่มต้นโครงการ พ.ค. 2569'],kpi:{กลไก:0,MOU:0,ประเด็น:0,สื่อสาร:0}},
+};
+
+const AGENCIES = [
+  {abbr:'สสส.',full:'สำนักงานกองทุนสนับสนุนการสร้างเสริมสุขภาพ',role:'Seed funding, นวัตกรรม, สื่อสารสาธารณะ'},
+  {abbr:'สช.',full:'สำนักงานคณะกรรมการสุขภาพแห่งชาติ',role:'สมัชชาสุขภาพ, ธรรมนูญ, กระบวนการมีส่วนร่วม'},
+  {abbr:'สปสช.',full:'สำนักงานหลักประกันสุขภาพแห่งชาติ',role:'กองทุนจังหวัด, กปท., LTC, ข้อมูลระบบสุขภาพ'},
+  {abbr:'พอช.',full:'สถาบันพัฒนาองค์กรชุมชน (องค์การมหาชน)',role:'กองทุนสวัสดิการชุมชน, เครือข่ายองค์กรชุมชน'},
+  {abbr:'สวรส.',full:'สถาบันวิจัยระบบสาธารณสุข',role:'ทุนวิจัย, ประเมินเชิงพัฒนา (DE), ระบบวิชาการ'},
+  {abbr:'นิด้า',full:'สถาบันบัณฑิตพัฒนบริหารศาสตร์',role:'Data analytics, Policy design, Executive learning'},
+  {abbr:'บพท.',full:'หน่วยบริหารและจัดการทุนด้านการพัฒนาระดับพื้นที่',role:'ทุนพัฒนาพื้นที่/นวัตกรรม, Policy lab'},
+  {abbr:'สพฉ.',full:'สถาบันการแพทย์ฉุกเฉินแห่งชาติ',role:'ระบบข้อมูล EMS, Training, Incident learning'},
+  {abbr:'สรพ.',full:'สถาบันรับรองคุณภาพสถานพยาบาล',role:'มาตรฐานคุณภาพ, ระบบรับรอง'},
+];
+
 const TWBI_DIMS = ['สุขภาพ','เศรษฐกิจ-สังคม','สิ่งแวดล้อม','การศึกษา','การมีส่วนร่วม'];
 const DIM_COLORS = ['#ef4444','#f59e0b','#10b981','#3b82f6','#8b5cf6'];
 
-// ===================== HELPERS =====================
+// ===================== STATE & HELPERS =====================
+
+let currentPhase = 'all';
+let currentTab = 'overview';
+let charts = {};
 
 function fmt(n){if(n==null)return'-';return n.toLocaleString('th-TH')}
 function fmtM(n){if(n>=1e6)return (n/1e6).toFixed(2)+' ล.';return fmt(n)}
 function pct(a,b){return b?((a/b)*100).toFixed(1)+'%':'0%'}
-function getMonthsElapsed(){
-  const now=new Date();const diff=(now-PROJECT.startDate)/(1000*60*60*24*30.44);
-  return Math.max(0,Math.min(PROJECT.duration,Math.floor(diff)));
-}
-function getCurrentInstallment(){
-  const now=new Date();
-  for(let i of BUDGET.installments){if(now>=i.startM&&now<=i.endM)return i.no}
-  return 1;
-}
-function statusColor(s){
-  return {'ดำเนินการแล้ว':'#10b981','กำลังดำเนินการ':'#3b82f6','วางแผน':'#f59e0b','ยังไม่เริ่ม':'#9ca3af'}[s]||'#9ca3af';
-}
-function statusBg(s){
-  return {'ดำเนินการแล้ว':'bg-green-100 text-green-800','กำลังดำเนินการ':'bg-blue-100 text-blue-800','วางแผน':'bg-yellow-100 text-yellow-800','ยังไม่เริ่ม':'bg-gray-100 text-gray-500'}[s]||'bg-gray-100 text-gray-500';
+function statusColor(s){return{'ดำเนินการแล้ว':'#10b981','กำลังดำเนินการ':'#3b82f6','วางแผน':'#f59e0b','ยังไม่เริ่ม':'#9ca3af'}[s]||'#9ca3af'}
+function statusBg(s){return{'ดำเนินการแล้ว':'bg-green-100 text-green-800','กำลังดำเนินการ':'bg-blue-100 text-blue-800','วางแผน':'bg-yellow-100 text-yellow-800','ยังไม่เริ่ม':'bg-gray-100 text-gray-500'}[s]||'bg-gray-100 text-gray-500'}
+
+function getBudget(){
+  if(currentPhase==='phase1') return P1.budget;
+  if(currentPhase==='phase2') return P2.budget;
+  return {
+    grandTotal: P1.budget.grandTotal + P2.budget.grandTotal,
+    sss: P1.budget.sss + P2.budget.sss,
+    partner: P1.budget.partner + P2.budget.partner,
+    section1: P1.budget.section1 + P2.budget.section1,
+    section2: P1.budget.section2 + P2.budget.section2,
+    section3: P1.budget.section3 + P2.budget.section3,
+  };
 }
 
-// ===================== TABS =====================
+function getActivities(){
+  if(currentPhase==='phase1') return P1_ACTIVITIES;
+  if(currentPhase==='phase2') return P2_ACTIVITIES;
+  return ALL_ACTIVITIES;
+}
 
-let currentTab='overview';
-let charts={};
+function getProvinces(){
+  if(currentPhase==='phase1') return P1.provinces;
+  if(currentPhase==='phase2') return P2.provinces;
+  return [...P1.provinces,...P2.provinces];
+}
+
+function getTWBI(){
+  if(currentPhase==='phase1') return TWBI.filter(t=>t.phase===1);
+  if(currentPhase==='phase2') return TWBI.filter(t=>t.phase===2);
+  return TWBI;
+}
+
+function getPhaseLabel(){
+  if(currentPhase==='phase1') return 'เฟส 1 (5 จังหวัดนำร่อง)';
+  if(currentPhase==='phase2') return 'เฟส 2 (13 จังหวัด)';
+  return 'ทั้งโครงการ (เฟส 1 + เฟส 2)';
+}
+
+// ===================== PHASE & TABS =====================
+
+function setPhase(p){
+  currentPhase=p;
+  document.querySelectorAll('#phaseToggle button').forEach((b,i)=>{
+    b.classList.toggle('active',['all','phase1','phase2'][i]===p);
+  });
+  Object.values(charts).forEach(c=>{if(c&&c.destroy)c.destroy()});
+  charts={};
+  render();
+}
 
 function showTab(tab){
   currentTab=tab;
@@ -240,34 +360,48 @@ function render(){
 // ===================== OVERVIEW =====================
 
 function renderOverview(){
-  const months=getMonthsElapsed();
-  const curInst=getCurrentInstallment();
-  const totalAct=ACTIVITIES.length;
-  const doing=ACTIVITIES.filter(a=>a.status==='กำลังดำเนินการ').length;
-  const done=ACTIVITIES.filter(a=>a.status==='ดำเนินการแล้ว').length;
-  const plan=ACTIVITIES.filter(a=>a.status==='วางแผน').length;
-  const notStarted=ACTIVITIES.filter(a=>a.status==='ยังไม่เริ่ม').length;
+  const b=getBudget();
+  const acts=getActivities();
+  const provs=getProvinces();
+  const doing=acts.filter(a=>a.status==='กำลังดำเนินการ').length;
+  const done=acts.filter(a=>a.status==='ดำเนินการแล้ว').length;
+  const plan=acts.filter(a=>a.status==='วางแผน').length;
+  const notStarted=acts.filter(a=>a.status==='ยังไม่เริ่ม').length;
+
+  const phaseInfo = currentPhase==='all'
+    ? `<div class="text-xs text-gray-400 mt-1"><span class="badge phase1">เฟส 1: 5 จว.</span> <span class="badge phase2">เฟส 2: +8 จว.</span></div>`
+    : currentPhase==='phase1'
+    ? `<div class="text-xs text-gray-400 mt-1"><span class="badge phase1">จังหวัดนำร่อง</span></div>`
+    : `<div class="text-xs text-gray-400 mt-1"><span class="badge phase2">5 เดิม + 8 ใหม่</span></div>`;
+
+  const timeInfo = currentPhase==='phase1'
+    ? 'มิ.ย. 2568 – พ.ค. 2570'
+    : currentPhase==='phase2'
+    ? 'พ.ค. 2569 – เม.ย. 2571'
+    : 'มิ.ย. 2568 – เม.ย. 2571';
 
   return `
+  <div class="mb-4 p-3 rounded-lg bg-blue-50 text-blue-800 text-sm font-semibold flex items-center gap-2">
+    <span class="text-lg">📊</span> กำลังดู: <span class="badge ${currentPhase==='phase1'?'phase1':currentPhase==='phase2'?'phase2':'phaseAll'}">${getPhaseLabel()}</span>
+  </div>
   <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
     <div class="card text-center">
-      <div class="text-3xl font-bold text-blue-700">${fmt(BUDGET.grandTotal)}</div>
-      <div class="text-sm text-gray-500 mt-1">งบประมาณรวม (บาท)</div>
-      <div class="text-xs text-gray-400 mt-1">สสส. ${fmtM(BUDGET.sss)} + ภาคี ${fmtM(BUDGET.partner)}</div>
+      <div class="text-3xl font-bold text-blue-700">${fmtM(b.grandTotal)}</div>
+      <div class="text-sm text-gray-500 mt-1">งบประมาณรวม</div>
+      <div class="text-xs text-gray-400 mt-1">สสส. ${fmtM(b.sss)}${b.partner>0?' + ภาคี '+fmtM(b.partner):''}</div>
     </div>
     <div class="card text-center">
-      <div class="text-3xl font-bold text-emerald-600">13</div>
+      <div class="text-3xl font-bold text-emerald-600">${provs.length}</div>
       <div class="text-sm text-gray-500 mt-1">จังหวัดเป้าหมาย</div>
-      <div class="text-xs text-gray-400 mt-1"><span class="badge phase1">เฟส 1: 5 จว.</span> <span class="badge phase2">เฟส 2: 8 จว.</span></div>
+      ${phaseInfo}
     </div>
     <div class="card text-center">
-      <div class="text-3xl font-bold text-amber-600">${months}<span class="text-lg">/${PROJECT.duration}</span></div>
-      <div class="text-sm text-gray-500 mt-1">เดือนที่ดำเนินการ</div>
-      <div class="progress-bar mt-2"><div class="progress-fill bg-amber-500" style="width:${(months/PROJECT.duration*100)}%"></div></div>
-      <div class="text-xs text-gray-400 mt-1">งวดที่ ${curInst} จาก 5</div>
+      <div class="text-3xl font-bold text-amber-600">${timeInfo.split('–')[0].trim()}</div>
+      <div class="text-sm text-gray-500 mt-1">ระยะเวลาโครงการ</div>
+      <div class="text-xs text-gray-400 mt-1">${timeInfo}</div>
     </div>
     <div class="card text-center">
-      <div class="text-3xl font-bold text-purple-600">${totalAct}</div>
+      <div class="text-3xl font-bold text-purple-600">${acts.length}</div>
       <div class="text-sm text-gray-500 mt-1">กิจกรรมทั้งหมด</div>
       <div class="flex justify-center gap-2 mt-2 flex-wrap">
         <span class="badge bg-green-100 text-green-800">${done} เสร็จ</span>
@@ -276,97 +410,138 @@ function renderOverview(){
       </div>
     </div>
   </div>
+  ${currentPhase==='all'?`
+  <div class="card mb-6">
+    <h3 class="font-semibold mb-3">เปรียบเทียบงบประมาณ เฟส 1 vs เฟส 2</h3>
+    <canvas id="chartPhaseCompare"></canvas>
+  </div>`:''}
   <div class="grid md:grid-cols-2 gap-4 mb-6">
     <div class="card"><h3 class="font-semibold mb-3">สัดส่วนงบประมาณ (สสส. vs ภาคี)</h3><canvas id="chartBudgetPie"></canvas></div>
-    <div class="card"><h3 class="font-semibold mb-3">งบประมาณแยกกลยุทธ์</h3><canvas id="chartStrategyBar"></canvas></div>
+    <div class="card"><h3 class="font-semibold mb-3">สถานะกิจกรรม</h3><canvas id="chartStatusBar"></canvas></div>
   </div>
-  <div class="grid md:grid-cols-2 gap-4 mb-6">
-    <div class="card"><h3 class="font-semibold mb-3">แผนการเบิกจ่ายรายงวด</h3><canvas id="chartInstallment"></canvas></div>
-    <div class="card"><h3 class="font-semibold mb-3">สถานะกิจกรรม แยกระดับ</h3><canvas id="chartStatusLevel"></canvas></div>
-  </div>
+  ${currentPhase!=='phase1'?`
   <div class="card mb-6">
-    <h3 class="font-semibold mb-3">ไทม์ไลน์โครงการ</h3>
+    <h3 class="font-semibold mb-3">แผนการเบิกจ่ายรายงวด (เฟส 2)</h3>
     <div class="overflow-x-auto"><table>
-      <thead><tr><th>งวดที่</th><th>ระยะเวลา</th><th>เดือน</th><th class="text-right">จำนวนเงิน (บาท)</th><th>สัดส่วน</th><th>สถานะ</th></tr></thead>
+      <thead><tr><th>งวดที่</th><th>ระยะเวลา</th><th>เดือน</th><th class="text-right">จำนวนเงิน (บาท)</th><th>สัดส่วน</th></tr></thead>
       <tbody>
-      ${BUDGET.installments.map(i=>{
-        const isCurrent=getCurrentInstallment()===i.no;const isPast=new Date()>i.endM;
-        const st=isPast?'ผ่านแล้ว':(isCurrent?'ปัจจุบัน':'ยังไม่ถึง');
-        const stCls=isPast?'bg-green-100 text-green-800':(isCurrent?'bg-blue-100 text-blue-800':'bg-gray-100 text-gray-500');
-        return `<tr class="${isCurrent?'bg-blue-50':''}"><td class="font-semibold">${i.no}</td><td>${i.period}</td><td>${i.months}</td><td class="text-right font-mono">${fmt(i.amount)}</td><td>${pct(i.amount,BUDGET.grandTotal)}</td><td><span class="badge ${stCls}">${st}</span></td></tr>`;
+      ${P2.installments.map(i=>{
+        const now=new Date();const isCurrent=now>=i.startM&&now<=i.endM;
+        return `<tr class="${isCurrent?'bg-blue-50':''}"><td class="font-semibold">${i.no}</td><td>${i.period}</td><td>${i.months}</td><td class="text-right font-mono">${fmt(i.amount)}</td><td>${pct(i.amount,P2.budget.grandTotal)}</td></tr>`;
       }).join('')}
-      <tr class="font-bold bg-gray-50"><td colspan="3">รวม</td><td class="text-right font-mono">${fmt(BUDGET.installments.reduce((s,i)=>s+i.amount,0))}</td><td>100%</td><td></td></tr>
+      <tr class="font-bold bg-gray-50"><td colspan="3">รวม</td><td class="text-right font-mono">${fmt(P2.installments.reduce((s,i)=>s+i.amount,0))}</td><td>100%</td></tr>
       </tbody>
     </table></div>
-  </div>
+  </div>`:''}
   <div class="card">
-    <h3 class="font-semibold mb-3">ทีมบริหารโครงการ</h3>
-    <div class="grid md:grid-cols-2 gap-4">
-      <div><div class="text-sm font-semibold text-blue-700 mb-1">ผู้จัดการโครงการ</div><div class="text-sm">นพ.ปรีดา แต้อารักษ์ (ที่ปรึกษา สช., part-time 6 วัน/เดือน)</div></div>
-      <div><div class="text-sm font-semibold text-blue-700 mb-1">ทีมงาน (6 คน full-time)</div><div class="text-sm">นักวิชาการ 3 คน, เจ้าหน้าที่บริหาร 1 คน, ผู้ประสานงาน 1 คน, การเงินและบัญชี 1 คน</div></div>
+    <h3 class="font-semibold mb-3">ภาคียุทธศาสตร์ 9 หน่วยงาน</h3>
+    <div class="grid md:grid-cols-3 gap-3">
+    ${AGENCIES.map(p=>`<div class="border rounded-lg p-3 hover:shadow transition"><div class="font-semibold text-blue-700 text-sm">${p.abbr}</div><div class="text-xs text-gray-500">${p.full}</div><div class="text-xs mt-1">${p.role}</div></div>`).join('')}
     </div>
   </div>`;
 }
 
 function initOverviewCharts(){
-  charts.budgetPie=new Chart(document.getElementById('chartBudgetPie'),{type:'doughnut',data:{labels:['สสส.','หน่วยงานภาคีสานพลัง'],datasets:[{data:[BUDGET.sss,BUDGET.partner],backgroundColor:['#3b82f6','#f59e0b'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmt(ctx.raw)+' บ. ('+pct(ctx.raw,BUDGET.grandTotal)+')'}}}}});
-  charts.stratBar=new Chart(document.getElementById('chartStrategyBar'),{type:'bar',data:{labels:['กลยุทธ์ 1\nระบบนิเวศ','กลยุทธ์ 2\nวาระเป้าหมาย','กลยุทธ์ 3\nข้อมูล/ทรัพยากร'],datasets:[{label:'งบประมาณ (บาท)',data:[BUDGET.strategy1.total,BUDGET.strategy2.total,BUDGET.strategy3.total],backgroundColor:['#3b82f6','#10b981','#8b5cf6']}]},options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)+' บาท'}}},scales:{x:{ticks:{callback:v=>fmtM(v)}}}}});
-  charts.installment=new Chart(document.getElementById('chartInstallment'),{type:'bar',data:{labels:BUDGET.installments.map(i=>'งวด '+i.no),datasets:[{label:'จำนวนเงิน',data:BUDGET.installments.map(i=>i.amount),backgroundColor:BUDGET.installments.map(i=>getCurrentInstallment()===i.no?'#2563eb':'#93c5fd')}]},options:{responsive:true,plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)+' บาท'}}},scales:{y:{ticks:{callback:v=>fmtM(v)}}}}});
-  const central=ACTIVITIES.filter(a=>a.level==='กลาง');const provincial=ACTIVITIES.filter(a=>a.level==='จังหวัด');
+  const b=getBudget();
+  charts.budgetPie=new Chart(document.getElementById('chartBudgetPie'),{type:'doughnut',data:{labels:['สสส.','หน่วยงานภาคีสานพลัง'],datasets:[{data:[b.sss,b.partner||1],backgroundColor:['#3b82f6','#f59e0b'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmt(ctx.raw)+' บ. ('+pct(ctx.raw,b.grandTotal)+')'}}}}});
+
+  const acts=getActivities();
   const statuses=['ดำเนินการแล้ว','กำลังดำเนินการ','วางแผน','ยังไม่เริ่ม'];
-  charts.statusLevel=new Chart(document.getElementById('chartStatusLevel'),{type:'bar',data:{labels:['ส่วนกลาง','ระดับจังหวัด'],datasets:statuses.map((s,i)=>({label:s,data:[central.filter(a=>a.status===s).length,provincial.filter(a=>a.status===s).length],backgroundColor:['#10b981','#3b82f6','#f59e0b','#d1d5db'][i]}))},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:12}}},scales:{x:{stacked:true},y:{stacked:true,ticks:{stepSize:1}}}}});
+  charts.statusBar=new Chart(document.getElementById('chartStatusBar'),{type:'bar',data:{labels:statuses,datasets:[{label:'จำนวนกิจกรรม',data:statuses.map(s=>acts.filter(a=>a.status===s).length),backgroundColor:['#10b981','#3b82f6','#f59e0b','#d1d5db']}]},options:{responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,ticks:{stepSize:1}}}}});
+
+  if(currentPhase==='all'){
+    const el=document.getElementById('chartPhaseCompare');
+    if(el){
+      charts.phaseCompare=new Chart(el,{type:'bar',data:{
+        labels:['ค่าดำเนินงาน\n(ส่วนที่ 1)','ค่าบริหารจัดการ\n(ส่วนที่ 2)','ค่าตอบแทนคู่สัญญา\n(ส่วนที่ 3)','รวมทั้งสิ้น'],
+        datasets:[
+          {label:'เฟส 1',data:[P1.budget.section1,P1.budget.section2,P1.budget.section3,P1.budget.grandTotal],backgroundColor:'rgba(59,130,246,0.8)',borderRadius:4},
+          {label:'เฟส 2',data:[P2.budget.section1,P2.budget.section2,P2.budget.section3,P2.budget.grandTotal],backgroundColor:'rgba(16,185,129,0.8)',borderRadius:4}
+        ]
+      },options:{responsive:true,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmt(ctx.raw)+' บาท'}}},scales:{y:{ticks:{callback:v=>fmtM(v)}}}}});
+    }
+  }
 }
 
 // ===================== BUDGET =====================
 
 function renderBudget(){
+  const b=getBudget();
+  const acts=getActivities().filter(a=>a.budget>0).sort((a,b)=>b.budget-a.budget);
+
   return `
-  <div class="grid md:grid-cols-3 gap-4 mb-6">
-    <div class="card text-center border-l-4 border-blue-500"><div class="text-xs text-gray-400">ค่าดำเนินงาน (ส่วนที่ 1)</div><div class="text-2xl font-bold text-blue-700">${fmtM(BUDGET.section1)}</div><div class="text-xs text-gray-400">${pct(BUDGET.section1,BUDGET.grandTotal)} ของงบรวม</div></div>
-    <div class="card text-center border-l-4 border-emerald-500"><div class="text-xs text-gray-400">ค่าบริหารจัดการ (ส่วนที่ 2)</div><div class="text-2xl font-bold text-emerald-700">${fmtM(BUDGET.section2)}</div><div class="text-xs text-gray-400">${pct(BUDGET.section2,BUDGET.grandTotal)} ของงบรวม</div></div>
-    <div class="card text-center border-l-4 border-purple-500"><div class="text-xs text-gray-400">ค่าตอบแทนคู่สัญญา (ส่วนที่ 3)</div><div class="text-2xl font-bold text-purple-700">${fmtM(BUDGET.section3)}</div><div class="text-xs text-gray-400">${pct(BUDGET.section3,BUDGET.grandTotal)} ของงบรวม</div></div>
+  <div class="mb-4 p-3 rounded-lg bg-blue-50 text-blue-800 text-sm font-semibold flex items-center gap-2">
+    <span class="text-lg">💰</span> งบประมาณ: <span class="badge ${currentPhase==='phase1'?'phase1':currentPhase==='phase2'?'phase2':'phaseAll'}">${getPhaseLabel()}</span>
   </div>
+  ${currentPhase==='all'?`
+  <div class="grid md:grid-cols-5 gap-4 mb-6">
+    <div class="card text-center border-l-4 border-amber-500"><div class="text-xs text-gray-400">งบรวม 2 เฟส</div><div class="text-2xl font-bold text-amber-700">${fmtM(b.grandTotal)}</div><div class="text-xs text-gray-400">${fmt(b.grandTotal)} บาท</div></div>
+    <div class="card text-center border-l-4 border-blue-500"><div class="text-xs text-gray-400">เฟส 1</div><div class="text-2xl font-bold text-blue-700">${fmtM(P1.budget.grandTotal)}</div><div class="text-xs text-gray-400">24 เดือน</div></div>
+    <div class="card text-center border-l-4 border-emerald-500"><div class="text-xs text-gray-400">เฟส 2</div><div class="text-2xl font-bold text-emerald-700">${fmtM(P2.budget.grandTotal)}</div><div class="text-xs text-gray-400">24 เดือน</div></div>
+    <div class="card text-center border-l-4 border-indigo-500"><div class="text-xs text-gray-400">สสส. รวม</div><div class="text-2xl font-bold text-indigo-700">${fmtM(b.sss)}</div><div class="text-xs text-gray-400">${pct(b.sss,b.grandTotal)}</div></div>
+    <div class="card text-center border-l-4 border-yellow-500"><div class="text-xs text-gray-400">ภาคีสมทบ (เฟส 2)</div><div class="text-2xl font-bold text-yellow-700">${fmtM(b.partner)}</div><div class="text-xs text-gray-400">${pct(b.partner,b.grandTotal)}</div></div>
+  </div>`:`
+  <div class="grid md:grid-cols-3 gap-4 mb-6">
+    <div class="card text-center border-l-4 border-blue-500"><div class="text-xs text-gray-400">ค่าดำเนินงาน (ส่วนที่ 1)</div><div class="text-2xl font-bold text-blue-700">${fmtM(b.section1)}</div><div class="text-xs text-gray-400">${pct(b.section1,b.grandTotal)}</div></div>
+    <div class="card text-center border-l-4 border-emerald-500"><div class="text-xs text-gray-400">ค่าบริหารจัดการ (ส่วนที่ 2)</div><div class="text-2xl font-bold text-emerald-700">${fmtM(b.section2)}</div><div class="text-xs text-gray-400">${pct(b.section2,b.grandTotal)}</div></div>
+    <div class="card text-center border-l-4 border-purple-500"><div class="text-xs text-gray-400">ค่าตอบแทนคู่สัญญา (ส่วนที่ 3)</div><div class="text-2xl font-bold text-purple-700">${fmtM(b.section3)}</div><div class="text-xs text-gray-400">${pct(b.section3,b.grandTotal)}</div></div>
+  </div>`}
   <div class="grid md:grid-cols-2 gap-4 mb-6">
-    <div class="card"><h3 class="font-semibold mb-3">สัดส่วนงบดำเนินงาน แยกกลยุทธ์</h3><canvas id="chartBudgetStrategy"></canvas></div>
-    <div class="card"><h3 class="font-semibold mb-3">Co-investment ภาคีสานพลัง (${fmtM(BUDGET.partner)})</h3><canvas id="chartCoinvest"></canvas></div>
+    <div class="card"><h3 class="font-semibold mb-3">${currentPhase==='all'?'เปรียบเทียบงบ เฟส 1 vs เฟส 2':'สัดส่วนงบตามส่วน'}</h3><canvas id="chartBudgetMain"></canvas></div>
+    <div class="card"><h3 class="font-semibold mb-3">${currentPhase==='phase1'?'งบตามกลยุทธ์ (เฟส 1)':'Co-investment ภาคีสานพลัง (เฟส 2)'}</h3><canvas id="chartBudgetSub"></canvas></div>
   </div>
   <div class="card mb-6">
-    <h3 class="font-semibold mb-3">รายละเอียดงบประมาณ แยกรายกิจกรรม</h3>
-    <div class="text-xs text-gray-400 mb-2">ข้อมูลจากเอกสารโครงการที่เสนอ สสส. (ฉบับสุดท้าย)</div>
+    <h3 class="font-semibold mb-3">รายละเอียดงบประมาณรายกิจกรรม</h3>
     <div class="scroll-table"><table>
-      <thead><tr><th>รหัส</th><th>กิจกรรม</th><th class="text-right">งบประมาณ</th><th>แหล่งทุน</th><th>กลยุทธ์</th></tr></thead>
+      <thead><tr><th>รหัส</th><th>กิจกรรม</th><th class="text-right">งบประมาณ</th><th>แหล่งทุน</th><th>เฟส</th><th>กลยุทธ์</th></tr></thead>
       <tbody>
-      ${ACTIVITIES.filter(a=>a.budget>0).sort((a,b)=>b.budget-a.budget).map(a=>`<tr><td class="font-mono text-xs">${a.id}</td><td class="text-sm">${a.name}</td><td class="text-right font-mono">${fmt(a.budget)}</td><td><span class="badge ${a.source.includes('ภาคี')?'bg-amber-100 text-amber-800':'bg-blue-100 text-blue-800'}">${a.source}</span></td><td class="text-center">${a.strategy}</td></tr>`).join('')}
-      <tr class="font-bold bg-gray-50"><td colspan="2">รวมค่าดำเนินงาน (ส่วนที่ 1)</td><td class="text-right font-mono">${fmt(BUDGET.section1)}</td><td colspan="2"></td></tr>
+      ${acts.map(a=>`<tr><td class="font-mono text-xs">${a.id}</td><td class="text-sm">${a.name}</td><td class="text-right font-mono">${fmt(a.budget)}</td><td><span class="badge ${a.source.includes('ภาคี')?'bg-amber-100 text-amber-800':'bg-blue-100 text-blue-800'}">${a.source}</span></td><td><span class="badge ${a.phase===1?'phase1':'phase2'}">เฟส ${a.phase}</span></td><td class="text-center">${a.strategy}</td></tr>`).join('')}
+      <tr class="font-bold bg-gray-50"><td colspan="2">รวมค่าดำเนินงาน</td><td class="text-right font-mono">${fmt(b.section1)}</td><td colspan="3"></td></tr>
       </tbody>
     </table></div>
   </div>
+  ${currentPhase!=='phase1'?`
   <div class="card mb-6">
-    <h3 class="font-semibold mb-3">ค่าบริหารจัดการ (ส่วนที่ 2)</h3>
+    <h3 class="font-semibold mb-3">ค่าบริหารจัดการ เฟส 2 (ส่วนที่ 2)</h3>
     <table>
       <thead><tr><th>รายการ</th><th>อัตรา</th><th class="text-right">จำนวนเงิน (บาท)</th></tr></thead>
       <tbody>
-      ${BUDGET.management.map(m=>`<tr><td>${m.item}</td><td class="text-sm text-gray-500">${m.rate}</td><td class="text-right font-mono">${fmt(m.amount)}</td></tr>`).join('')}
-      <tr class="font-bold bg-gray-50"><td colspan="2">รวมค่าบริหารจัดการ</td><td class="text-right font-mono">${fmt(BUDGET.section2)}</td></tr>
-      <tr class="font-bold bg-gray-50"><td colspan="2">ค่าตอบแทนคู่สัญญา (8% ของส่วนที่ 1 เฉพาะ สสส.)</td><td class="text-right font-mono">${fmt(BUDGET.section3)}</td></tr>
-      <tr class="font-bold bg-blue-50 text-blue-800"><td colspan="2">รวมงบประมาณทั้งหมด</td><td class="text-right font-mono">${fmt(BUDGET.grandTotal)}</td></tr>
+      ${P2.management.map(m=>`<tr><td>${m.item}</td><td class="text-sm text-gray-500">${m.rate}</td><td class="text-right font-mono">${fmt(m.amount)}</td></tr>`).join('')}
+      <tr class="font-bold bg-gray-50"><td colspan="2">รวมค่าบริหารจัดการ</td><td class="text-right font-mono">${fmt(P2.budget.section2)}</td></tr>
       </tbody>
     </table>
-  </div>`;
+  </div>`:''}`;
 }
 
 function initBudgetCharts(){
-  charts.budgetStrategy=new Chart(document.getElementById('chartBudgetStrategy'),{type:'pie',data:{labels:['กลยุทธ์ 1: ระบบนิเวศ','กลยุทธ์ 2: วาระเป้าหมาย','กลยุทธ์ 3: ข้อมูล/ทรัพยากร','ค่าบริหารจัดการ','ค่าตอบแทนคู่สัญญา'],datasets:[{data:[BUDGET.strategy1.total,BUDGET.strategy2.total,BUDGET.strategy3.total,BUDGET.section2,BUDGET.section3],backgroundColor:['#3b82f6','#10b981','#8b5cf6','#f59e0b','#6b7280']}]},options:{responsive:true,plugins:{legend:{position:'bottom',labels:{boxWidth:10,font:{size:11}}},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmt(ctx.raw)+' บ.'}}}}});
-  charts.coinvest=new Chart(document.getElementById('chartCoinvest'),{type:'bar',data:{labels:COINVEST_BY_ACTIVITY.map(c=>c.id+' '+c.name.substring(0,18)),datasets:[{label:'จำนวนเงิน (บาท)',data:COINVEST_BY_ACTIVITY.map(c=>c.amount),backgroundColor:'#f59e0b'}]},options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)+' บาท'}}},scales:{x:{ticks:{callback:v=>fmtM(v)}}}}});
+  const b=getBudget();
+  if(currentPhase==='all'){
+    charts.budgetMain=new Chart(document.getElementById('chartBudgetMain'),{type:'bar',data:{
+      labels:['ค่าดำเนินงาน','ค่าบริหาร','ค่าตอบแทน','รวม'],
+      datasets:[
+        {label:'เฟส 1',data:[P1.budget.section1,P1.budget.section2,P1.budget.section3,P1.budget.grandTotal],backgroundColor:'rgba(59,130,246,0.8)',borderRadius:4},
+        {label:'เฟส 2',data:[P2.budget.section1,P2.budget.section2,P2.budget.section3,P2.budget.grandTotal],backgroundColor:'rgba(16,185,129,0.8)',borderRadius:4}
+      ]
+    },options:{responsive:true,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>ctx.dataset.label+': '+fmt(ctx.raw)+' บาท'}}},scales:{y:{ticks:{callback:v=>fmtM(v)}}}}});
+    charts.budgetSub=new Chart(document.getElementById('chartBudgetSub'),{type:'bar',data:{labels:COINVEST_BY_ACTIVITY.map(c=>c.name.substring(0,20)),datasets:[{label:'บาท',data:COINVEST_BY_ACTIVITY.map(c=>c.amount),backgroundColor:'#f59e0b'}]},options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)+' บาท'}}},scales:{x:{ticks:{callback:v=>fmtM(v)}}}}});
+  } else {
+    charts.budgetMain=new Chart(document.getElementById('chartBudgetMain'),{type:'doughnut',data:{labels:['ค่าดำเนินงาน','ค่าบริหาร','ค่าตอบแทน'],datasets:[{data:[b.section1,b.section2,b.section3],backgroundColor:['#3b82f6','#10b981','#8b5cf6'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:true,plugins:{legend:{position:'bottom'},tooltip:{callbacks:{label:ctx=>ctx.label+': '+fmt(ctx.raw)+' บ.'}}}}});
+    const phase = currentPhase==='phase1'?P1:P2;
+    const strats = phase.budget.strategies;
+    charts.budgetSub=new Chart(document.getElementById('chartBudgetSub'),{type:'bar',data:{labels:['กลยุทธ์ 1','กลยุทธ์ 2','กลยุทธ์ 3'],datasets:[{label:'งบประมาณ',data:[strats.s1.total,strats.s2.total,strats.s3.total],backgroundColor:['#3b82f6','#10b981','#8b5cf6']}]},options:{responsive:true,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>fmt(ctx.raw)+' บาท'}}},scales:{x:{ticks:{callback:v=>fmtM(v)}}}}});
+  }
 }
 
 // ===================== INDICATORS =====================
 
 function renderIndicators(){
   return `
+  <div class="mb-4 p-3 rounded-lg bg-blue-50 text-blue-800 text-sm font-semibold flex items-center gap-2">
+    <span class="text-lg">🎯</span> ตัวชี้วัด: <span class="badge ${currentPhase==='phase1'?'phase1':currentPhase==='phase2'?'phase2':'phaseAll'}">${getPhaseLabel()}</span>
+  </div>
   <div class="card mb-6">
     <h3 class="font-semibold mb-1">ตัวชี้วัดหลัก (Core Indicators)</h3>
-    <p class="text-xs text-gray-400 mb-3">จากกรอบนิยามตัวชี้วัดโครงการ ใช้ร่วมกันทั้งเฟส 1 และเฟส 2</p>
+    <p class="text-xs text-gray-400 mb-3">กรอบนิยามตัวชี้วัดโครงการ ใช้ร่วมกันทั้งเฟส 1 และเฟส 2</p>
     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
     ${INDICATORS_CORE.map(c=>`<div class="border rounded-lg p-4 hover:shadow-md transition">
         <div class="flex items-center gap-2 mb-2"><span class="badge bg-blue-600 text-white font-bold">${c.id}</span><span class="font-semibold text-sm">${c.name}</span></div>
@@ -396,10 +571,14 @@ function renderIndicators(){
 // ===================== TWBI =====================
 
 function renderTWBI(){
-  const available=TWBI.filter(t=>t.overall!==null).sort((a,b)=>b.overall-a.overall);
-  const missing=TWBI.filter(t=>t.overall===null);
+  const data=getTWBI();
+  const available=data.filter(t=>t.overall!==null).sort((a,b)=>b.overall-a.overall);
+  const missing=data.filter(t=>t.overall===null);
 
   return `
+  <div class="mb-4 p-3 rounded-lg bg-blue-50 text-blue-800 text-sm font-semibold flex items-center gap-2">
+    <span class="text-lg">📈</span> TWBI: <span class="badge ${currentPhase==='phase1'?'phase1':currentPhase==='phase2'?'phase2':'phaseAll'}">${getPhaseLabel()}</span>
+  </div>
   <div class="card mb-6">
     <h3 class="font-semibold mb-1">ดัชนีความอยู่ดีมีสุขระดับจังหวัด (TWBI)</h3>
     <p class="text-xs text-gray-400 mb-3">Thailand Well-being Index V7 | 5 มิติ 22 ตัวชี้วัด | ข้อมูลจาก Demo TWBI Dashboard (สช./นิด้า)</p>
@@ -423,19 +602,13 @@ function renderTWBI(){
       ${missing.map(t=>`<tr class="text-gray-400"><td>${t.province}</td><td><span class="badge ${t.phase===1?'phase1':'phase2'}">เฟส ${t.phase}</span></td><td colspan="7" class="text-center italic">รอข้อมูล</td></tr>`).join('')}
       </tbody>
     </table></div>
-    <p class="text-xs text-gray-400 mt-2">หมายเหตุ: ตราด พัทลุง ปทุมธานี ชัยภูมิ — รอข้อมูลจากระบบ TWBI Dashboard</p>
-  </div>
-  <div class="card">
-    <h3 class="font-semibold mb-1">TWBI Transformation Playbook (Theory of Change)</h3>
-    <p class="text-xs text-gray-400 mb-3">กระบวนการเปลี่ยนแปลงจากข้อมูลสู่การลงมือทำ</p>
-    <div class="flex flex-wrap gap-2 justify-center">
-      ${['Data\nข้อมูล','Pattern\nแบบแผน','Dialogue\nเสวนา','Area Agenda\nวาระพื้นที่','Collective Action\nปฏิบัติการร่วม','Learning Review\nทบทวนเรียนรู้'].map((s,i)=>`<div class="flex items-center gap-2"><div class="rounded-lg px-4 py-3 text-center text-sm font-semibold" style="min-width:100px;background:hsl(${220-i*15},70%,${92-i*8}%);color:hsl(${220-i*15},70%,${30+i*5}%)">${s.replace('\n','<br>')}</div>${i<5?'<span class="text-gray-300 text-xl">&rarr;</span>':''}</div>`).join('')}
-    </div>
   </div>`;
 }
 
 function initTWBICharts(){
-  const available=TWBI.filter(t=>t.overall!==null).sort((a,b)=>b.overall-a.overall);
+  const data=getTWBI();
+  const available=data.filter(t=>t.overall!==null).sort((a,b)=>b.overall-a.overall);
+  if(!available.length) return;
   charts.twbiBar=new Chart(document.getElementById('chartTWBIBar'),{type:'bar',data:{labels:available.map(t=>t.province),datasets:[
     {label:'สุขภาพ',data:available.map(t=>t.health),backgroundColor:DIM_COLORS[0]+'cc'},
     {label:'เศรษฐกิจ-สังคม',data:available.map(t=>t.socEcon),backgroundColor:DIM_COLORS[1]+'cc'},
@@ -450,52 +623,67 @@ function initTWBICharts(){
 // ===================== PROVINCES =====================
 
 function renderProvinces(){
-  const healthRegions={'เชียงราย':'เขต 1','พิษณุโลก':'เขต 2','นครสวรรค์':'เขต 3','ปทุมธานี':'เขต 4','สุพรรณบุรี':'เขต 5','ตราด':'เขต 6','ขอนแก่น':'เขต 7','บึงกาฬ':'เขต 8','ชัยภูมิ':'เขต 9','อุบลราชธานี':'เขต 10','พัทลุง':'เขต 12','กระบี่':'เขต 11','กรุงเทพมหานคร':'เขต 13'};
-  function provRow(prov,phase){
+  const provList = currentPhase==='phase1'?P1.provinces:currentPhase==='phase2'?[...P1.provinces,...P2.provinces]:getProvinces();
+  const showP1 = currentPhase!=='phase2';
+  const showP2 = currentPhase!=='phase1';
+
+  function provRow(prov){
+    const d=PROVINCE_DETAIL[prov]||{};
     const twbi=TWBI.find(t=>t.province===prov);
-    return `<tr><td class="font-semibold">${prov}</td><td><span class="badge ${phase===1?'phase1':'phase2'}">เฟส ${phase}</span></td><td class="text-sm">${healthRegions[prov]||'-'}</td><td class="text-center font-mono">${twbi&&twbi.overall?twbi.overall.toFixed(2):'<span class="text-gray-400 italic">รอ</span>'}</td><td class="text-center">${twbi&&twbi.rank?twbi.rank+'/77':'<span class="text-gray-400 italic">-</span>'}</td><td class="text-center"><span class="badge ${phase===1?'bg-green-100 text-green-800':'bg-blue-100 text-blue-800'}">${phase===1?'ดำเนินการต่อเนื่อง':'เริ่มดำเนินการ'}</span></td></tr>`;
+    const kpiAvg = d.kpi ? Math.round(Object.values(d.kpi).reduce((s,v)=>s+v,0)/Object.values(d.kpi).length) : 0;
+    return `<tr>
+      <td class="font-semibold">${prov}</td>
+      <td><span class="badge ${d.phase===1?'phase1':'phase2'}">เฟส ${d.phase}</span></td>
+      <td class="text-sm">${d.zone||'-'}</td>
+      <td class="text-center font-mono">${twbi&&twbi.overall?twbi.overall.toFixed(2):'<span class="text-gray-400 italic">รอ</span>'}</td>
+      <td class="text-center">${twbi&&twbi.rank?twbi.rank+'/77':'<span class="text-gray-400">-</span>'}</td>
+      <td>
+        <div class="progress-bar" style="width:80px"><div class="progress-fill ${kpiAvg>=60?'bg-green-500':kpiAvg>0?'bg-yellow-500':'bg-gray-300'}" style="width:${kpiAvg}%"></div></div>
+        <span class="text-xs text-gray-400 ml-1">${kpiAvg}%</span>
+      </td>
+    </tr>`;
   }
+
   return `
-  <div class="card mb-6">
-    <h3 class="font-semibold mb-1">จังหวัดเป้าหมาย ระยะที่ 1 (5 จังหวัด)</h3>
-    <p class="text-xs text-gray-400 mb-3">จังหวัดเดิมที่ดำเนินการต่อเนื่องจากระยะที่ 1 — ทำหน้าที่เป็น "พี่เลี้ยง" ให้จังหวัดใหม่</p>
-    <table><thead><tr><th>จังหวัด</th><th>เฟส</th><th>เขตสุขภาพ</th><th>TWBI</th><th>อันดับ</th><th>สถานะ</th></tr></thead>
-      <tbody>${PROJECT.phase1Provinces.map(p=>provRow(p,1)).join('')}</tbody></table>
+  <div class="mb-4 p-3 rounded-lg bg-blue-50 text-blue-800 text-sm font-semibold flex items-center gap-2">
+    <span class="text-lg">🗺️</span> จังหวัด: <span class="badge ${currentPhase==='phase1'?'phase1':currentPhase==='phase2'?'phase2':'phaseAll'}">${getPhaseLabel()}</span>
   </div>
+  ${showP1?`<div class="card mb-6">
+    <h3 class="font-semibold mb-1">จังหวัดนำร่อง เฟส 1 (5 จังหวัด)</h3>
+    <p class="text-xs text-gray-400 mb-3">ดำเนินการตั้งแต่ มิ.ย. 2568 — ทำหน้าที่เป็น "พี่เลี้ยง" ให้จังหวัดใหม่ในเฟส 2</p>
+    <table><thead><tr><th>จังหวัด</th><th>เฟส</th><th>เขตสุขภาพ</th><th>TWBI</th><th>อันดับ</th><th>ความก้าวหน้า</th></tr></thead>
+      <tbody>${P1.provinces.map(p=>provRow(p)).join('')}</tbody></table>
+  </div>`:''}
+  ${showP2?`<div class="card mb-6">
+    <h3 class="font-semibold mb-1">จังหวัดเฟส 2 (8 จังหวัดใหม่)</h3>
+    <p class="text-xs text-gray-400 mb-3">เริ่มดำเนินการ พ.ค. 2569 — ครอบคลุมเขตสุขภาพทั่วประเทศ</p>
+    <table><thead><tr><th>จังหวัด</th><th>เฟส</th><th>เขตสุขภาพ</th><th>TWBI</th><th>อันดับ</th><th>ความก้าวหน้า</th></tr></thead>
+      <tbody>${P2.provinces.map(p=>provRow(p)).join('')}</tbody></table>
+  </div>`:''}
   <div class="card mb-6">
-    <h3 class="font-semibold mb-1">จังหวัดเป้าหมาย ระยะที่ 2 (8 จังหวัด)</h3>
-    <p class="text-xs text-gray-400 mb-3">จังหวัดใหม่ที่คัดเลือกจากเขตสุขภาพที่ยังไม่เคยเข้าร่วม — ครอบคลุมทุกเขตสุขภาพทั่วประเทศ</p>
-    <table><thead><tr><th>จังหวัด</th><th>เฟส</th><th>เขตสุขภาพ</th><th>TWBI</th><th>อันดับ</th><th>สถานะ</th></tr></thead>
-      <tbody>${PROJECT.phase2Provinces.map(p=>provRow(p,2)).join('')}</tbody></table>
-  </div>
-  <div class="card mb-6">
-    <h3 class="font-semibold mb-3">งบสนับสนุนระดับจังหวัด (เฟส 2 — 8 จังหวัดใหม่)</h3>
-    <p class="text-xs text-gray-400 mb-3">จากเอกสารข้อเสนอโครงการที่เสนอ สสส.</p>
-    <table><thead><tr><th>รายการ</th><th class="text-right">ต่อจังหวัด</th><th class="text-right">รวม 8 จว.</th></tr></thead>
-      <tbody>
-        <tr><td>สนับสนุนทีมประสานจังหวัด (1.2.1)</td><td class="text-right font-mono">100,000</td><td class="text-right font-mono">800,000</td></tr>
-        <tr><td>พัฒนาวาระเป้าหมายร่วม แผนขับเคลื่อน ข้อตกลงร่วม (1.2.2)</td><td class="text-right font-mono">400,000</td><td class="text-right font-mono">3,200,000</td></tr>
-        <tr><td>ขับเคลื่อนกลไกตำบล/ชุมชนเป้าหมาย (1.2.3)</td><td class="text-right font-mono">400,000</td><td class="text-right font-mono">3,200,000</td></tr>
-        <tr><td>สื่อสารและสร้างการรับรู้ (1.2.4)</td><td class="text-right font-mono">200,000</td><td class="text-right font-mono">1,600,000</td></tr>
-        <tr><td>ถอดบทเรียน (1.2.5)</td><td class="text-right font-mono">200,000</td><td class="text-right font-mono">1,600,000</td></tr>
-        <tr class="font-bold bg-gray-50"><td>รวมต่อจังหวัด</td><td class="text-right font-mono">1,300,000</td><td class="text-right font-mono">10,400,000</td></tr>
-      </tbody></table>
+    <h3 class="font-semibold mb-3">รายละเอียดจังหวัด</h3>
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+    ${(currentPhase==='phase2'?[...P1.provinces,...P2.provinces]:(currentPhase==='phase1'?P1.provinces:getProvinces())).filter(p=>currentPhase==='all'||PROVINCE_DETAIL[p].phase===(currentPhase==='phase1'?1:currentPhase==='phase2'?2:PROVINCE_DETAIL[p].phase)).map(prov=>{
+      const d=PROVINCE_DETAIL[prov]||{};
+      const kpiKeys=['กลไก','MOU','ประเด็น','สื่อสาร'];
+      return `<div class="border rounded-lg p-4 hover:shadow-md transition ${d.phase===2?'border-t-4 border-t-green-500':'border-t-4 border-t-blue-500'}">
+        <div class="flex justify-between items-center mb-2">
+          <span class="font-semibold">${prov}</span>
+          <span class="badge ${d.phase===1?'phase1':'phase2'}">เฟส ${d.phase} | ${d.zone}</span>
+        </div>
+        <div class="text-xs text-blue-600 italic mb-2">${d.vision||''}</div>
+        <div class="flex flex-wrap gap-1 mb-2">${(d.issues||[]).map(i=>`<span class="text-xs bg-gray-100 rounded px-2 py-0.5">${i}</span>`).join('')}</div>
+        ${d.kpi?`<div class="grid grid-cols-4 gap-1 text-xs">
+          ${kpiKeys.map(k=>`<div class="text-center"><div class="text-gray-400">${k}</div><div class="font-bold ${d.kpi[k]>=60?'text-green-600':d.kpi[k]>0?'text-yellow-600':'text-gray-400'}">${d.kpi[k]}%</div></div>`).join('')}
+        </div>`:''}
+      </div>`;
+    }).join('')}
+    </div>
   </div>
   <div class="card">
     <h3 class="font-semibold mb-3">ภาคียุทธศาสตร์ 9 หน่วยงาน</h3>
-    <p class="text-xs text-gray-400 mb-3">ข้อมูลบทบาทภาคีจากเอกสารข้อเสนอโครงการที่เสนอ สสส.</p>
     <div class="grid md:grid-cols-3 gap-3">
-    ${[
-      {abbr:'สสส.',full:'สำนักงานกองทุนสนับสนุนการสร้างเสริมสุขภาพ',role:'Seed funding, นวัตกรรม, สื่อสารสาธารณะ'},
-      {abbr:'สช.',full:'สำนักงานคณะกรรมการสุขภาพแห่งชาติ',role:'สมัชชาสุขภาพ, ธรรมนูญ, กระบวนการมีส่วนร่วม'},
-      {abbr:'สปสช.',full:'สำนักงานหลักประกันสุขภาพแห่งชาติ',role:'กองทุนจังหวัด, กปท., LTC, ข้อมูลระบบสุขภาพ'},
-      {abbr:'พอช.',full:'สถาบันพัฒนาองค์กรชุมชน (องค์การมหาชน)',role:'กองทุนสวัสดิการชุมชน, เครือข่ายองค์กรชุมชน'},
-      {abbr:'สวรส.',full:'สถาบันวิจัยระบบสาธารณสุข',role:'ทุนวิจัย, ประเมินเชิงพัฒนา (DE), ระบบวิชาการ'},
-      {abbr:'นิด้า',full:'สถาบันบัณฑิตพัฒนบริหารศาสตร์',role:'Data analytics, Policy design, Executive learning'},
-      {abbr:'บพท.',full:'หน่วยบริหารและจัดการทุนด้านการพัฒนาระดับพื้นที่',role:'ทุนพัฒนาพื้นที่/นวัตกรรม, Policy lab'},
-      {abbr:'สพฉ.',full:'สถาบันการแพทย์ฉุกเฉินแห่งชาติ',role:'ระบบข้อมูล EMS, Training, Incident learning'},
-      {abbr:'สรพ.',full:'สถาบันรับรองคุณภาพสถานพยาบาล',role:'มาตรฐานคุณภาพ, ระบบรับรอง'},
-    ].map(p=>`<div class="border rounded-lg p-3 hover:shadow transition"><div class="font-semibold text-blue-700 text-sm">${p.abbr}</div><div class="text-xs text-gray-500">${p.full}</div><div class="text-xs mt-1">${p.role}</div></div>`).join('')}
+    ${AGENCIES.map(p=>`<div class="border rounded-lg p-3 hover:shadow transition"><div class="font-semibold text-blue-700 text-sm">${p.abbr}</div><div class="text-xs text-gray-500">${p.full}</div><div class="text-xs mt-1">${p.role}</div></div>`).join('')}
     </div>
   </div>`;
 }
@@ -503,41 +691,32 @@ function renderProvinces(){
 // ===================== ACTIVITIES =====================
 
 function renderActivities(){
-  const strategies = [{n:1,name:'สร้างระบบนิเวศความร่วมมือและกลไกขับเคลื่อนหลายระดับ',color:'blue'},{n:2,name:'ขับเคลื่อนวาระเป้าหมายร่วมในพื้นที่อย่างมุ่งเป้า',color:'emerald'},{n:3,name:'พัฒนาระบบข้อมูล บูรณาการทรัพยากร สื่อสารสาธารณะ',color:'purple'}];
+  const acts=getActivities();
+  const strategies = [{n:1,name:'สร้างระบบนิเวศความร่วมมือและกลไกขับเคลื่อน',color:'blue'},{n:2,name:'ขับเคลื่อนวาระเป้าหมายร่วมในพื้นที่',color:'emerald'},{n:3,name:'พัฒนาระบบข้อมูล สื่อสารสาธารณะ จัดการความรู้',color:'purple'}];
 
   return `
+  <div class="mb-4 p-3 rounded-lg bg-blue-50 text-blue-800 text-sm font-semibold flex items-center gap-2">
+    <span class="text-lg">📋</span> แผนงาน/กิจกรรม: <span class="badge ${currentPhase==='phase1'?'phase1':currentPhase==='phase2'?'phase2':'phaseAll'}">${getPhaseLabel()}</span>
+  </div>
   <div class="flex gap-4 mb-4 flex-wrap">
     <div class="legend-item"><span class="status-dot" style="background:#10b981"></span>ดำเนินการแล้ว</div>
     <div class="legend-item"><span class="status-dot" style="background:#3b82f6"></span>กำลังดำเนินการ</div>
     <div class="legend-item"><span class="status-dot" style="background:#f59e0b"></span>วางแผน</div>
     <div class="legend-item"><span class="status-dot" style="background:#9ca3af"></span>ยังไม่เริ่ม</div>
   </div>
-  <div class="grid md:grid-cols-2 gap-4 mb-6">
-    <div class="card">
-      <h3 class="font-semibold mb-3">กิจกรรมส่วนกลาง (${ACTIVITIES.filter(a=>a.level==='กลาง').length} กิจกรรม)</h3>
-      <div class="scroll-table"><table><thead><tr><th>รหัส</th><th>กิจกรรม</th><th>สถานะ</th></tr></thead><tbody>
-      ${ACTIVITIES.filter(a=>a.level==='กลาง').map(a=>`<tr><td class="font-mono text-xs">${a.id}</td><td class="text-sm">${a.name}</td><td><span class="badge ${statusBg(a.status)}">${a.status}</span></td></tr>`).join('')}
-      </tbody></table></div>
-    </div>
-    <div class="card">
-      <h3 class="font-semibold mb-3">กิจกรรมระดับจังหวัด (${ACTIVITIES.filter(a=>a.level==='จังหวัด').length} กิจกรรม)</h3>
-      <div class="scroll-table"><table><thead><tr><th>รหัส</th><th>กิจกรรม</th><th>สถานะ</th></tr></thead><tbody>
-      ${ACTIVITIES.filter(a=>a.level==='จังหวัด').map(a=>`<tr><td class="font-mono text-xs">${a.id}</td><td class="text-sm">${a.name}</td><td><span class="badge ${statusBg(a.status)}">${a.status}</span></td></tr>`).join('')}
-      </tbody></table></div>
-    </div>
-  </div>
   ${strategies.map(s=>{
-    const acts=ACTIVITIES.filter(a=>a.strategy===s.n);
-    const totalBudget=acts.reduce((sum,a)=>sum+a.budget,0);
+    const sActs=acts.filter(a=>a.strategy===s.n);
+    if(!sActs.length) return '';
+    const totalBudget=sActs.reduce((sum,a)=>sum+a.budget,0);
     return `<div class="card mb-6">
       <div class="flex items-center gap-3 mb-3">
         <span class="badge text-sm font-bold px-3 py-1" style="background:${s.color==='blue'?'#dbeafe':s.color==='emerald'?'#d1fae5':'#ede9fe'};color:${s.color==='blue'?'#1e40af':s.color==='emerald'?'#065f46':'#5b21b6'}">กลยุทธ์ ${s.n}</span>
-        <div><h3 class="font-semibold text-sm">${s.name}</h3><p class="text-xs text-gray-400">งบรวม ${fmtM(totalBudget)} บาท (${acts.length} กิจกรรม)</p></div>
+        <div><h3 class="font-semibold text-sm">${s.name}</h3><p class="text-xs text-gray-400">งบรวม ${fmtM(totalBudget)} บาท (${sActs.length} กิจกรรม)</p></div>
       </div>
-      <table><thead><tr><th>รหัส</th><th>กิจกรรม</th><th>ความถี่</th><th class="text-right">งบประมาณ</th><th>แหล่งทุน</th><th>ระดับ</th><th>งวด</th><th>สถานะ</th></tr></thead>
+      <table><thead><tr><th>รหัส</th><th>กิจกรรม</th><th>ความถี่</th><th class="text-right">งบประมาณ</th><th>แหล่งทุน</th><th>เฟส</th><th>สถานะ</th></tr></thead>
       <tbody>
-      ${acts.map(a=>`<tr><td class="font-mono text-xs">${a.id}</td><td class="text-sm">${a.name}</td><td class="text-xs text-gray-500">${a.freq}</td><td class="text-right font-mono text-sm">${a.budget>0?fmt(a.budget):'-'}</td><td class="text-xs"><span class="badge ${a.source.includes('ภาคี')?'bg-amber-100 text-amber-800':'bg-blue-100 text-blue-800'}">${a.source}</span></td><td class="text-xs">${a.level==='กลาง'?'<span class="badge bg-indigo-100 text-indigo-700">ส่วนกลาง</span>':'<span class="badge bg-teal-100 text-teal-700">จังหวัด</span>'}</td><td class="text-center text-xs">${a.installment}</td><td><span class="badge ${statusBg(a.status)}" style="white-space:nowrap"><span class="status-dot" style="background:${statusColor(a.status)}"></span>${a.status}</span></td></tr>`).join('')}
-      <tr class="font-bold bg-gray-50"><td colspan="3">รวมกลยุทธ์ ${s.n}</td><td class="text-right font-mono">${fmt(totalBudget)}</td><td colspan="4"></td></tr>
+      ${sActs.map(a=>`<tr><td class="font-mono text-xs">${a.id}</td><td class="text-sm">${a.name}</td><td class="text-xs text-gray-500">${a.freq}</td><td class="text-right font-mono text-sm">${a.budget>0?fmt(a.budget):'-'}</td><td class="text-xs"><span class="badge ${a.source.includes('ภาคี')?'bg-amber-100 text-amber-800':'bg-blue-100 text-blue-800'}">${a.source}</span></td><td><span class="badge ${a.phase===1?'phase1':'phase2'}">${a.phase}</span></td><td><span class="badge ${statusBg(a.status)}" style="white-space:nowrap"><span class="status-dot" style="background:${statusColor(a.status)}"></span>${a.status}</span></td></tr>`).join('')}
+      <tr class="font-bold bg-gray-50"><td colspan="3">รวมกลยุทธ์ ${s.n}</td><td class="text-right font-mono">${fmt(totalBudget)}</td><td colspan="3"></td></tr>
       </tbody></table>
     </div>`;
   }).join('')}
@@ -545,8 +724,8 @@ function renderActivities(){
     <h3 class="font-semibold mb-3">สรุปสถานะกิจกรรมรวม</h3>
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
       ${['ดำเนินการแล้ว','กำลังดำเนินการ','วางแผน','ยังไม่เริ่ม'].map(s=>{
-        const count=ACTIVITIES.filter(a=>a.status===s).length;
-        const budget=ACTIVITIES.filter(a=>a.status===s).reduce((sum,a)=>sum+a.budget,0);
+        const count=acts.filter(a=>a.status===s).length;
+        const budget=acts.filter(a=>a.status===s).reduce((sum,a)=>sum+a.budget,0);
         return `<div class="border rounded-lg p-4 text-center"><div class="status-dot" style="background:${statusColor(s)};width:14px;height:14px;margin:0 auto 8px"></div><div class="text-2xl font-bold">${count}</div><div class="text-sm text-gray-500">${s}</div><div class="text-xs text-gray-400 mt-1">${fmtM(budget)} บาท</div></div>`;
       }).join('')}
     </div>
@@ -554,7 +733,6 @@ function renderActivities(){
 }
 
 // ===================== INIT =====================
-
 document.getElementById('currentDate').textContent=new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'});
 render();
 </script>
